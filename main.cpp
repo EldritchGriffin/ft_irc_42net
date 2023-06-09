@@ -2,14 +2,14 @@
 
 int main(int ac, char** av)
 {
-    if(ac < 2)
+    if(ac < 3)
     {
-        std::cout << "Usage: " << av[0] << " <port>" << std::endl;
+        std::cerr << "Usage: " << av[0] << " <port> <password>" << std::endl;
         return 1;
     }
     //TODO: create a server here;
 
-    Server server(atoi(av[1]));
+    Server server(atoi(av[1]), av[2]);
 
     server.run();
 }

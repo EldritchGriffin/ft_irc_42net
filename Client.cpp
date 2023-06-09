@@ -6,6 +6,7 @@ Client::Client(int socket, std::string name, std::string ip, int port)
     this->name = name;
     this->ip = ip;
     this->port = port;
+    this->grade = GUEST;
 }
 
 Client::~Client()
