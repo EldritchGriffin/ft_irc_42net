@@ -1,4 +1,4 @@
-#include "server.hpp"
+#include "Server.hpp"
 
 int main(int ac, char** av)
 {
@@ -8,4 +8,8 @@ int main(int ac, char** av)
         return 1;
     }
     //TODO: create a server here;
+
+    Server server(atoi(av[1]));
+
+    server.run();
 }

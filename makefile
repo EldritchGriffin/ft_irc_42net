@@ -1,8 +1,8 @@
-SRC 	:= main.cpp server.cpp
+SRC 	:= main.cpp Server.cpp Client.cpp
 CC 		:= c++
 FLAG	:= -Wall -Werror -Wextra -std=c++98
 NAME 	:= ircserv
-HEADERS := server.hpp
+HEADERS := Server.hpp Client.hpp
 OBJ		:= $(SRC:%.cpp=%.o)
 
 all: $(NAME)
