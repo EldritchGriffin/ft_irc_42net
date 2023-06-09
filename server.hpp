@@ -10,7 +10,8 @@
 #include <arpa/inet.h>
 #include "Client.hpp"
 #include <exception>
-
+#include <unistd.h>
+#include <poll.h>
 
 //TODO create whatever classes we need to make the server work;
 

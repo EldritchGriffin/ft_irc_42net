@@ -1,22 +1,25 @@
-SRC 	:= main.cpp Server.cpp Client.cpp
+SRC 	:= main.cpp server.cpp Client.cpp
 CC 		:= c++
-FLAG	:= -Wall -Werror -Wextra -std=c++98
+CFLAG	:= -Wall -Werror -Wextra -std=c++98
 NAME 	:= ircserv
-HEADERS := Server.hpp Client.hpp
+HEADERS := server.hpp Client.hpp
 OBJ		:= $(SRC:%.cpp=%.o)
 
 all: $(NAME)
 
 $(NAME) : $(OBJ)
-	@c++ $(FLAG) $(SRC) -o $(NAME)
+	c++ $(CFLAG) $(SRC) -o $(NAME)
 
 %.o: %.cpp $(HEADERS)
-	@c++ $(FLAG) -c $< -o $@
+	c++ $(CFLAG) -c $< -o $@
 
 clean:
-	@rm -rf $(OBJ)
+	rm -rf $(OBJ)
 	
 fclean : clean
-	@rm -rf $(NAME)
-	
+	rm -rf $(NAME)
+
+j : all clean
+	clear && ./ircserv 3000 ok
+
 re : fclean all
