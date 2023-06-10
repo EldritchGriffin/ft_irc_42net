@@ -23,6 +23,7 @@ class Server
         int srv_socket;
         int srv_port;
         std::string srv_password;
+        std::vector<pollfd> pollfds;
         std::vector<Client> clients;
     public:
         Server(int port, std::string password);

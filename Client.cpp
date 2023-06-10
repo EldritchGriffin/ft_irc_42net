@@ -1,11 +1,9 @@
 #include "Client.hpp"
 
-Client::Client(int socket, std::string name, std::string ip, int port)
+Client::Client(int socket, sockaddr_in client_addr)
 {
     this->socket = socket;
-    this->name = name;
-    this->ip = ip;
-    this->port = port;
+    this->addr = client_addr;
     this->grade = GUEST;
 }
 

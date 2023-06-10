@@ -16,11 +16,9 @@ class Client
 {
     private:
         int socket;
-        std::string name;
-        std::string ip;
-        int port;
+        sockaddr_in addr;
         int grade;
     public:
-        Client(int socket, std::string name, std::string ip, int port);
+        Client(int socket, sockaddr_in client_addr);
         ~Client();        
 };
