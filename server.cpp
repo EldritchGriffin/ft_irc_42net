@@ -73,6 +73,26 @@ void Server::accept_client()
     this->pollfds.push_back(pfd);
 }
 
+void Server::client_request(int client_socket)
+{
+    char buffer[1024];
+    int bytes_read = recv(client_socket, buffer, 1024, 0);
+    if (bytes_read == -1)
+    {
+        std::cerr << "Error: could not read data from client." << std::endl;
+        exit(1);
+    }
+    else if (bytes_read == 0)
+    {
+        std::cout << "Client disconnected." << std::endl;
+        close(client_socket);
+    }
+    else
+    {
+        std::cout << "Client sent: " << buffer;
+        // send(client_socket, buffer, bytes_read, 0);
+    }
+}
 
 void Server::run()
 {
@@ -81,7 +101,7 @@ void Server::run()
 
     while (true)
     {
-        poll(this->pollfds.data(), this->pollfds.size(), 0);  // Wait indefinitely for events
+        poll(this->pollfds.data(), this->pollfds.size(), 0);
 
         for (size_t i = 0; i < this->pollfds.size(); ++i)
         {
@@ -93,7 +113,8 @@ void Server::run()
                 }
                 else  // Client socket has incoming data
                 {
-                    std::cout << "Client " << i << " has data." << std::endl;
+                    client_request(this->pollfds[i].fd);
+                    // std::cout << "Client " << i << " has data." << std::endl;
                 }
             }
         }

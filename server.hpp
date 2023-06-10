@@ -30,5 +30,6 @@ class Server
         ~Server();
         void init_server();
         void accept_client();
+        void client_request(int client_socket);
         void run();
 };
