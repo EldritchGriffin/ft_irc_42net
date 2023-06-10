@@ -92,29 +92,34 @@ void Server::client_request(int client_socket)
         std::cout << "Client sent: " << buffer;
         // send(client_socket, buffer, bytes_read, 0);
     }
+    memset(buffer, 0, 1024);
 }
 
 void Server::run()
 {
+    int poll_flag = 0;
     this->init_server();
     std::cout << "Server is listening on port " << this->srv_port << std::endl;
 
     while (true)
     {
-        poll(this->pollfds.data(), this->pollfds.size(), 0);
+        poll_flag = poll(this->pollfds.data(), this->pollfds.size(), 0);
 
-        for (size_t i = 0; i < this->pollfds.size(); ++i)
+        if(poll_flag > 0)
         {
-            if (this->pollfds[i].revents & POLLIN)
+            for (size_t i = 0; i < this->pollfds.size(); ++i)
             {
-                if (this->pollfds[i].fd == this->srv_socket)  // Server socket has incoming connection
+                if (this->pollfds[i].revents & POLLIN)
                 {
-                    accept_client();
-                }
-                else  // Client socket has incoming data
-                {
-                    client_request(this->pollfds[i].fd);
-                    // std::cout << "Client " << i << " has data." << std::endl;
+                    if (this->pollfds[i].fd == this->srv_socket)  // Server socket has incoming connection
+                    {
+                        accept_client();
+                    }
+                    else  // Client socket has incoming data
+                    {
+                        client_request(this->pollfds[i].fd);
+                        // std::cout << "Client " << i << " has data." << std::endl;
+                    }
                 }
             }
         }
