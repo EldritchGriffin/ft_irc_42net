@@ -17,9 +17,9 @@ void Server::init_server()
     if (this->srv_socket == -1)
         throw std::runtime_error("Error: could not create socket, retrying...");
 
-    // int reuseaddr = 1;
-    // if (setsockopt(this->srv_socket, SOL_SOCKET, SO_REUSEADDR, &reuseaddr, sizeof(reuseaddr)) == -1)
-    //     throw std::runtime_error("Error: could not set socket options, retrying...");
+    int reuseaddr = 1;
+    if (setsockopt(this->srv_socket, SOL_SOCKET, SO_REUSEADDR, &reuseaddr, sizeof(reuseaddr)) == -1)
+        throw std::runtime_error("Error: could not set socket options, retrying...");
 
     struct sockaddr_in srv_addr;
     srv_addr.sin_family = AF_INET;
