@@ -17,9 +17,9 @@ void Server::init_server()
     if (this->srv_socket == -1)
         throw std::runtime_error("Error: could not create socket, retrying...");
 
-    int reuseaddr = 1;
-    if (setsockopt(this->srv_socket, SOL_SOCKET, SO_REUSEADDR, &reuseaddr, sizeof(reuseaddr)) == -1)
-        throw std::runtime_error("Error: could not set socket options, retrying...");
+    // int reuseaddr = 1;
+    // if (setsockopt(this->srv_socket, SOL_SOCKET, SO_REUSEADDR, &reuseaddr, sizeof(reuseaddr)) == -1)
+    //     throw std::runtime_error("Error: could not set socket options, retrying...");
 
     struct sockaddr_in srv_addr;
     srv_addr.sin_family = AF_INET;
@@ -46,7 +46,9 @@ void Server::accept_client()
     socklen_t client_addr_size = sizeof(client_addr);
     int client_socket = accept(this->srv_socket, (struct sockaddr*)&client_addr, &client_addr_size);
     if(client_socket == -1)
+    {
         std::cerr << "Error: could not accept client." << std::endl; return;
+    }
     std::cout << "Client connected." << std::endl;
     Client client(client_socket, client_addr);
     this->clients.insert(std::pair<int, Client>(client_socket, client));
@@ -56,7 +58,6 @@ void Server::accept_client()
     pfd.revents = 0;
 
     this->pollfds.push_back(pfd);
-    send(client_socket, "Enter password: ", 16, 0);
 }
 
 void Server::authentificate_client(int client_socket)
@@ -141,7 +142,10 @@ void Server::run()
     {
         poll_flag = poll(this->pollfds.data(), this->pollfds.size(), 0);
         if(poll_flag == -1)
-            std::cerr << "Error: could not poll." << std::endl; continue;
+        {
+            std::cerr << "Error: could not poll." << std::endl;
+            continue;
+        }
         if(poll_flag > 0)
         {
             this->poll_handler();
