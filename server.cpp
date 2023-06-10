@@ -109,6 +109,30 @@ std::string Server::client_request(int client_socket)
     return std::string(buffer);
 }
 
+void Server::handle_input(int client_socket)
+{
+    std::string buffer = client_request(client_socket);
+    if(buffer.empty())
+        return;
+    std::cout << "Client: " << client_socket << " " << buffer; // TODO remove this line after testing;
+    if(buffer == "exit\n")
+    {
+        close(client_socket);
+        this->clients.erase(client_socket);
+        std::cout << "Client disconnected." << std::endl;
+    }
+    else
+    {
+        for (size_t i = 0; i < this->pollfds.size(); i++)
+        {
+            if (this->pollfds[i].fd != this->srv_socket && this->pollfds[i].fd != client_socket)
+            {
+                send(this->pollfds[i].fd, buffer.c_str(), buffer.size(), 0);
+            }
+        }
+    }
+}
+
 void Server::poll_handler()
 {
     for (size_t i = 0; i < this->pollfds.size(); i++)
@@ -123,6 +147,8 @@ void Server::poll_handler()
             {
                 if(this->clients.find(this->pollfds[i].fd)->second.get_grade() == GUEST)
                     this->authentificate_client(this->pollfds[i].fd);
+                else
+                    handle_input(this->pollfds[i].fd);
             }
         }
     }

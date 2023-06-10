@@ -33,6 +33,7 @@ class Server
         void accept_client();
         std::string client_request(int client_socket);
         void authentificate_client(int client_socket);
+        void handle_input(int client_socket);
     public:
         Server(int port, std::string password);
         ~Server();
