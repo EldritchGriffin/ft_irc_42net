@@ -10,3 +10,13 @@ Client::Client(int socket, sockaddr_in client_addr)
 Client::~Client()
 {
 }
+
+int Client::get_grade() const
+{
+    return this->grade;
+}
+
+void Client::set_grade(int grade)
+{
+    this->grade = grade;
+}

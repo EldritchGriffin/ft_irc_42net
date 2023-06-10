@@ -20,5 +20,7 @@ class Client
         int grade;
     public:
         Client(int socket, sockaddr_in client_addr);
+        int get_grade() const;
+        void set_grade(int grade);
         ~Client();        
 };

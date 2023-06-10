@@ -49,7 +49,6 @@ void Server::init_server()
     this->pollfds.push_back(pfd);
 }
 
-
 void Server::accept_client()
 {
     pollfd pfd;
@@ -64,19 +63,38 @@ void Server::accept_client()
     }
     std::cout << "Client connected." << std::endl;
     Client client(client_socket, client_addr);
-    this->clients.push_back(client);
+    this->clients.insert(std::pair<int, Client>(client_socket, client));
 
     pfd.fd = client_socket;
     pfd.events = POLLIN;
     pfd.revents = 0;
 
     this->pollfds.push_back(pfd);
+    send(client_socket, "Enter password: ", 16, 0);
 }
 
-void Server::client_request(int client_socket)
+void Server::authentificate_client(int client_socket)
+{
+    std::string buffer = client_request(client_socket);
+    if(buffer.empty())
+        return;
+    if(buffer == this->srv_password + '\n')
+    {
+        this->clients.find(client_socket)->second.set_grade(USER);
+        send(client_socket, "Welcome, to the 42_IRC_SERVER!\n", 32, 0);
+    }
+    else
+    {
+        send(client_socket, "Wrong password!\n", 16, 0);
+        close(client_socket);
+    }
+}
+
+std::string Server::client_request(int client_socket)
 {
     char buffer[1024];
     int bytes_read = recv(client_socket, buffer, 1024, 0);
+    buffer[bytes_read] = '\0';
     if (bytes_read == -1)
     {
         std::cerr << "Error: could not read data from client." << std::endl;
@@ -86,13 +104,28 @@ void Server::client_request(int client_socket)
     {
         std::cout << "Client disconnected." << std::endl;
         close(client_socket);
+        return std::string();
     }
-    else
+    return std::string(buffer);
+}
+
+void Server::poll_handler()
+{
+    for (size_t i = 0; i < this->pollfds.size(); i++)
     {
-        std::cout << "Client sent: " << buffer;
-        // send(client_socket, buffer, bytes_read, 0);
+        if (this->pollfds[i].revents & POLLIN)
+        {
+            if (this->pollfds[i].fd == this->srv_socket)
+            {
+                this->accept_client();
+            }
+            else
+            {
+                if(this->clients.find(this->pollfds[i].fd)->second.get_grade() == GUEST)
+                    this->authentificate_client(this->pollfds[i].fd);
+            }
+        }
     }
-    memset(buffer, 0, 1024);
 }
 
 void Server::run()
@@ -104,24 +137,9 @@ void Server::run()
     while (true)
     {
         poll_flag = poll(this->pollfds.data(), this->pollfds.size(), 0);
-
         if(poll_flag > 0)
         {
-            for (size_t i = 0; i < this->pollfds.size(); ++i)
-            {
-                if (this->pollfds[i].revents & POLLIN)
-                {
-                    if (this->pollfds[i].fd == this->srv_socket)  // Server socket has incoming connection
-                    {
-                        accept_client();
-                    }
-                    else  // Client socket has incoming data
-                    {
-                        client_request(this->pollfds[i].fd);
-                        // std::cout << "Client " << i << " has data." << std::endl;
-                    }
-                }
-            }
+            this->poll_handler();
         }
     }
 }

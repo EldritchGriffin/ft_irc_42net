@@ -20,16 +20,21 @@ class Client;
 class Server
 {
     private:
+        //private members
         int srv_socket;
         int srv_port;
         std::string srv_password;
         std::vector<pollfd> pollfds;
-        std::vector<Client> clients;
+        std::map<int ,Client> clients;
+
+        //private methods
+        void init_server();
+        void poll_handler();
+        void accept_client();
+        std::string client_request(int client_socket);
+        void authentificate_client(int client_socket);
     public:
         Server(int port, std::string password);
         ~Server();
-        void init_server();
-        void accept_client();
-        void client_request(int client_socket);
         void run();
 };

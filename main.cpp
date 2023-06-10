@@ -7,9 +7,18 @@ int main(int ac, char** av)
         std::cerr << "Usage: " << av[0] << " <port> <password>" << std::endl;
         return 1;
     }
-    //TODO: create a server here;
 
     Server server(atoi(av[1]), av[2]);
 
-    server.run();
+    while(true)
+    {//this while here is to restart the server if it crashes
+        try
+        {
+            server.run();
+        }
+        catch(const std::exception& e)
+        {
+            std::cerr << e.what() << '\n';
+        }
+    }
 }
