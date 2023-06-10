@@ -26,11 +26,10 @@ int main(int ac, char **av)
     {
         std::getline(std::cin, client_buffer);
         send(srv_socket, client_buffer.c_str(), client_buffer.length(), 0); // sent the message into the port using the socket
-        sleep(1);
         size_t message_buffer = 2024;
         char client_name[message_buffer];
         int soso = recv(srv_socket, client_name, message_buffer, 0);
         client_name[soso] = '\0';
-        std::cout << "server said :" << client_name << ";" << std::endl;
+        std::cout << "server said : " << client_name << " ;" << std::endl;
     }
 }
