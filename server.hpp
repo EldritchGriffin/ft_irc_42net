@@ -12,6 +12,7 @@
 #include <exception>
 #include <unistd.h>
 #include <poll.h>
+#include <stdlib.h>
 
 //TODO create whatever classes we need to make the server work;
 

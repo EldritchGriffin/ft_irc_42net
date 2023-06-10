@@ -15,17 +15,11 @@ void Server::init_server()
     fcntl(this->srv_socket, F_SETFL, O_NONBLOCK);
 
     if (this->srv_socket == -1)
-    {
-        std::cerr << "Error: could not create socket." << std::endl;
-        exit(1);
-    }
+        throw std::runtime_error("Error: could not create socket, retrying...");
 
     int reuseaddr = 1;
     if (setsockopt(this->srv_socket, SOL_SOCKET, SO_REUSEADDR, &reuseaddr, sizeof(reuseaddr)) == -1)
-    {
-        std::cerr << "Error: could not set socket option SO_REUSEADDR." << std::endl;
-        exit(1);
-    }
+        throw std::runtime_error("Error: could not set socket options, retrying...");
 
     struct sockaddr_in srv_addr;
     srv_addr.sin_family = AF_INET;
@@ -33,16 +27,11 @@ void Server::init_server()
     srv_addr.sin_addr.s_addr = INADDR_ANY;
 
     if (bind(this->srv_socket, reinterpret_cast<struct sockaddr*>(&srv_addr), sizeof(srv_addr)) == -1)
-    {
-        std::cerr << "Error: could not bind socket." << std::endl;
-        exit(1);
-    }
+        throw std::runtime_error("Error: could not bind socket, retrying...");
 
     if (listen(this->srv_socket, SOMAXCONN) == -1)
-    {
-        std::cerr << "Error: could not listen on socket." << std::endl;
-        exit(1);
-    }
+        throw std::runtime_error("Error: could not listen on socket, retrying...");
+    
     pfd.fd = this->srv_socket;
     pfd.events = POLLIN;
     pfd.revents = 0;
@@ -57,10 +46,7 @@ void Server::accept_client()
     socklen_t client_addr_size = sizeof(client_addr);
     int client_socket = accept(this->srv_socket, (struct sockaddr*)&client_addr, &client_addr_size);
     if(client_socket == -1)
-    {
-        std::cerr << "Error: could not accept client." << std::endl;
-        exit(1);
-    }
+        std::cerr << "Error: could not accept client." << std::endl; return;
     std::cout << "Client connected." << std::endl;
     Client client(client_socket, client_addr);
     this->clients.insert(std::pair<int, Client>(client_socket, client));
@@ -97,8 +83,9 @@ std::string Server::client_request(int client_socket)
     buffer[bytes_read] = '\0';
     if (bytes_read == -1)
     {
-        std::cerr << "Error: could not read data from client." << std::endl;
-        exit(1);
+        std::cerr << "Error: could not read from client." << std::endl;
+        close(client_socket);
+        return std::string();
     }
     else if (bytes_read == 0)
     {
@@ -153,6 +140,8 @@ void Server::run()
     while (true)
     {
         poll_flag = poll(this->pollfds.data(), this->pollfds.size(), 0);
+        if(poll_flag == -1)
+            std::cerr << "Error: could not poll." << std::endl; continue;
         if(poll_flag > 0)
         {
             this->poll_handler();
