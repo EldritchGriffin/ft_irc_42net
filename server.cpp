@@ -121,16 +121,6 @@ void Server::handle_input(int client_socket)
         this->clients.erase(client_socket);
         std::cout << "Client disconnected." << std::endl;
     }
-    else
-    {
-        for (size_t i = 0; i < this->pollfds.size(); i++)
-        {
-            if (this->pollfds[i].fd != this->srv_socket && this->pollfds[i].fd != client_socket)
-            {
-                send(this->pollfds[i].fd, buffer.c_str(), buffer.size(), 0);
-            }
-        }
-    }
 }
 
 void Server::poll_handler()
