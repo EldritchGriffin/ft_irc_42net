@@ -1,4 +1,5 @@
 #include "Client.hpp"
+#include "Channel.hpp"
 
 Client::Client()
 {
@@ -13,6 +14,7 @@ Client::Client(int socket, sockaddr_in client_addr)
 
 Client::~Client()
 {
+    std::cout << "ya tnakt" << std::endl;
 }
 
 int Client::get_grade() const

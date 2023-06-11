@@ -1,4 +1,6 @@
 #include "server.hpp"
+#include "Channel.hpp"
+#include "Client.hpp"
 
 Server::Server(int port, std::string password)
 {
@@ -97,17 +99,32 @@ std::string Server::client_request(int client_socket)
     return std::string(buffer);
 }
 
+
+void Server::join_cmd(int client_socket, std::string buffer)
+{
+    for(unsigned int i = 0; i < this->channels.size(); i++)
+    {
+        if(buffer == this->channels[i].name)
+        {
+            this->channels[i].users.push_back(this->clients.find(client_socket)->second);
+            return;
+        }
+    }
+    Channel nigga1("9alwa", "topic mzebbeb");
+    this->channels.push_back(nigga1);
+    this->channels.back().users.push_back(this->clients.find(client_socket)->second);
+    std::cout << "rah wslt hena" << std::endl;
+}
 void Server::handle_input(int client_socket)
 {
     std::string buffer = client_request(client_socket);
     if(buffer.empty())
         return;
-    std::cout << "Client: " << client_socket << " " << buffer; // TODO remove this line after testing;
-    if(buffer == "exit\n")
+    std::string cmd = buffer.substr(0, buffer.find(" "));
+    buffer.erase(0, cmd.length());    
+    if(cmd == "JOIN")
     {
-        close(client_socket);
-        this->clients.erase(client_socket);
-        std::cout << "Client disconnected." << std::endl;
+        join_cmd(client_socket, buffer);
     }
 }
 
@@ -119,7 +136,9 @@ void Server::poll_handler()
         {
             if (this->pollfds[i].fd == this->srv_socket)
             {
+                std::cout << "1" << std::endl;
                 this->accept_client();
+                std::cout << "12" << std::endl;
             }
             else
             {

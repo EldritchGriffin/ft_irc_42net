@@ -8,7 +8,6 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#include "Client.hpp"
 #include <exception>
 #include <unistd.h>
 #include <poll.h>
@@ -17,6 +16,7 @@
 //TODO create whatever classes we need to make the server work;
 
 class Client;
+class Channel;
 
 class Server
 {
@@ -27,8 +27,12 @@ class Server
         std::string srv_password;
         std::vector<pollfd> pollfds;
         std::map<int ,Client> clients;
+        std::vector<Channel> channels;
 
         //private methods
+
+        void join_cmd(int client_socket, std::string buffer); // remove later;
+
         void init_server();
         void poll_handler();
         void accept_client();

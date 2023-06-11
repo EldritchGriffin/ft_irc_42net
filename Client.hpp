@@ -1,6 +1,11 @@
 #pragma once
 
-#include "server.hpp"
+#include <string>
+#include <vector>
+#include <map>
+#include <iostream>
+#include <netinet/in.h>
+#include <arpa/inet.h>
 
 enum clientState
 {
@@ -13,14 +18,15 @@ enum clientState
 
 //TODO client will need further additional member variables;
 
+class Channel;
 class Client
 {
     private:
         int socket;
         sockaddr_in addr;
         int grade;
-        std::vector<Channel> _joinedch;
     public:
+        Client();
         Client(int socket, sockaddr_in client_addr);
         int get_grade() const;
         void set_grade(int grade);
