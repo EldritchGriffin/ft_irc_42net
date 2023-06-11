@@ -62,23 +62,6 @@ void Server::accept_client()
     this->pollfds.push_back(pfd);
 }
 
-void Server::authentificate_client(int client_socket)
-{
-    std::string buffer = client_request(client_socket);
-    if(buffer.empty())
-        return;
-    if(buffer == this->srv_password + '\n')
-    {
-        this->clients.find(client_socket)->second.set_grade(USER);
-        send(client_socket, "Welcome, to the 42_IRC_SERVER!\n", 32, 0);
-    }
-    else
-    {
-        send(client_socket, "Wrong password!\n", 16, 0);
-        close(client_socket);
-    }
-}
-
 std::string Server::client_request(int client_socket)
 {
     char buffer[1024];
@@ -102,30 +85,144 @@ std::string Server::client_request(int client_socket)
 
 void Server::join_cmd(int client_socket, std::string buffer)
 {
-    for(unsigned int i = 0; i < this->channels.size(); i++)
+    if(this->clients[client_socket].get_pass_state() == NOPASS)
     {
-        if(buffer == this->channels[i].name)
+        send(client_socket, "ERR PASS\r\n", 10, 0);
+        return;
+    }
+    if(buffer.empty())
+    {
+        send(client_socket, "ERR JOIN\r\n", 10, 0);
+        return;
+    }
+    std::string channel_name = buffer.substr(0, buffer.find(" "));
+    buffer.erase(0, channel_name.length());
+    if(buffer.empty())
+    {
+        send(client_socket, "ERR JOIN\r\n", 10, 0);
+        return;
+    }
+    std::string channel_password = buffer.substr(0, buffer.find(" "));
+    buffer.erase(0, channel_password.length());
+    if(buffer.empty())
+    {
+        send(client_socket, "ERR JOIN\r\n", 10, 0);
+        return;
+    }
+
+    for(std::vector<Channel>::iterator it = this->channels.begin(); it != this->channels.end(); ++it)
+    {
+        if(it->get_name() == channel_name)
         {
-            this->channels[i].users.push_back(this->clients.find(client_socket)->second);
+            if(it->get_password() == channel_password)
+            {
+                it->add_user(this->clients[client_socket]);
+                send(client_socket, "JOIN OK\r\n", 9, 0);
+                return;
+            }
+        }
+        else
+        {
+            send(client_socket, "wrong pass\n" ,11, 0);
+            return ;
+        }
+    }
+    Channel channel(channel_name, channel_password);
+    channel.set_admin(this->clients[client_socket]);
+    this->channels.push_back(channel);
+    send(client_socket, "JOIN OKK\r\n", 9, 0);
+}
+
+void Server::pass_cmd(int client_socket, std::string buffer)
+{
+    std::cout << buffer << std::endl;
+    if(buffer == this->srv_password + '\n')//TODO remove the \n;
+    {
+        this->clients[client_socket].set_pass_state();
+        send(client_socket, "PASS OK\r\n", 9, 0);
+    }
+    else
+    {
+        send(client_socket, "PASS ERR\r\n", 10, 0);
+    }
+}
+
+void Server::nick_cmd(int client_socket, std::string buffer)
+{
+    if(this->clients[client_socket].get_pass_state() == NOPASS)
+    {
+        send(client_socket, "ERR PASS\r\n", 10, 0);
+        return;
+    }
+    if(buffer.empty())
+    {
+        send(client_socket, "ERR NICK\r\n", 10, 0);
+        return;
+    }
+    this->clients[client_socket].set_nickname(buffer);
+    send(client_socket, "NICK OK\r\n", 9, 0);
+}
+
+void Server::user_cmd(int client_socket, std::string buffer)
+{
+    if(this->clients[client_socket].get_pass_state() == NOPASS)
+    {
+        send(client_socket, "ERR PASS\r\n", 10, 0);
+        return;
+    }
+    if(buffer.empty())
+    {
+        send(client_socket, "ERR USER\r\n", 10, 0);
+        return;
+    }
+    this->clients[client_socket].set_username(buffer);
+    send(client_socket, "USER OK\r\n", 9, 0);
+}
+
+void Server::msg(int client_socket, std::string buffer)
+{
+    if(this->clients[client_socket].get_pass_state() == NOPASS)
+    {
+        send(client_socket, "ERR PASS\r\n", 10, 0);
+        return;
+    }
+
+    std::string channel_name = buffer.substr(0, buffer.find(" "));
+    buffer.erase(0, channel_name.length() + 1);
+
+    std::string message = buffer.substr(0, buffer.find(" "));
+    buffer.erase(0, message.length());
+
+    for(std::vector<Channel>::iterator it = this->channels.begin(); it != this->channels.end(); ++it)
+    {
+        if(it->get_name() == channel_name)
+        {
+            it->send_message(message);
             return;
         }
     }
-    Channel nigga1("9alwa", "topic mzebbeb");
-    this->channels.push_back(nigga1);
-    this->channels.back().users.push_back(this->clients.find(client_socket)->second);
-    std::cout << "rah wslt hena" << std::endl;
+    send(client_socket, "ERR MSG\r\n", 9, 0);
+    return;
 }
+
 void Server::handle_input(int client_socket)
 {
     std::string buffer = client_request(client_socket);
     if(buffer.empty())
         return;
     std::string cmd = buffer.substr(0, buffer.find(" "));
-    buffer.erase(0, cmd.length());    
+    buffer.erase(0, cmd.length() + 1);    
     if(cmd == "JOIN")
-    {
         join_cmd(client_socket, buffer);
-    }
+    if(cmd == "PASS")
+        pass_cmd(client_socket, buffer);
+    if(cmd == "NICK")
+        nick_cmd(client_socket, buffer);
+    if(cmd == "USER")
+        user_cmd(client_socket, buffer);
+    if(cmd == "MSG")
+        msg(client_socket, buffer);
+    
 }
 
 void Server::poll_handler()
@@ -136,16 +233,11 @@ void Server::poll_handler()
         {
             if (this->pollfds[i].fd == this->srv_socket)
             {
-                std::cout << "1" << std::endl;
                 this->accept_client();
-                std::cout << "12" << std::endl;
             }
             else
             {
-                if(this->clients.find(this->pollfds[i].fd)->second.get_grade() == GUEST)
-                    this->authentificate_client(this->pollfds[i].fd);
-                else
-                    handle_input(this->pollfds[i].fd);
+                handle_input(this->pollfds[i].fd);
             }
         }
     }
@@ -171,3 +263,10 @@ void Server::run()
         }
     }
 }
+
+//TODO modify the messages sent to the users when executing authentification commands;
+//TODO find a way to mark a user as authentificated after entering all auth commands;
+//TODO remove the testing msg command;
+//TODO polish and finish the functions you started (talking to myself here (griffin) );
+//TODO this one is for drari, find something to work on, anything i started, ill finish, (dont modify code only add your own stuff, to avoid conflict);
+// GGWP GUYS IRC DONE IN A LITTLE BIT;
