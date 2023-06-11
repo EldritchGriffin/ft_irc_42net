@@ -1,5 +1,9 @@
 #include "Client.hpp"
 
+Client::Client()
+{
+}
+
 Client::Client(int socket, sockaddr_in client_addr)
 {
     this->socket = socket;

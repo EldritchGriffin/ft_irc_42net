@@ -6,6 +6,7 @@ enum clientState
 {
     GUEST,
     USER,
+    OPERATOR,
     ADMIN
 };
 
@@ -18,6 +19,7 @@ class Client
         int socket;
         sockaddr_in addr;
         int grade;
+        std::vector<Channel> _joinedch;
     public:
         Client(int socket, sockaddr_in client_addr);
         int get_grade() const;
