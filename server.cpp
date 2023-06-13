@@ -287,7 +287,20 @@ void Server::invite_cmd(int client_socket, std::string buffer){
             }
         }
     }
+}
 
+void Server::part_cmd(int client_socket,std::string buffer){
+    std::string ch = buffer.substr(0,buffer.find(" "));
+    for(std::vector<Channel>::iterator it = this->channels.begin(); it != this->channels.end(); ++it)
+    {
+        if(it->get_name() == ch)
+        {
+            it->remove_user(this->clients[client_socket]);
+            send(client_socket, "PART OK\r\n", 9, 0);
+            return;
+        }
+    }
+    send(client_socket, "ERR PART\r\n", 10, 0);
 }
 
 void Server::handle_input(int client_socket)
@@ -297,9 +310,13 @@ void Server::handle_input(int client_socket)
     {
         return;
     }
-    // std::cout << buffer << std::endl;
+    std::cout << buffer << std::endl;
     std::string command = buffer.substr(0, buffer.find(" "));
     buffer.erase(0, command.length() + 1);
+    if(command == "PART")
+    {
+        this->part_cmd(client_socket, buffer);
+    }
     if(command == "PASS")
     {
         this->pass_cmd(client_socket, buffer);
