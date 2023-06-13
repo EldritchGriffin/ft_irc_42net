@@ -32,6 +32,8 @@ class Server
 
         //private methods
 
+        void auth_client(int client_socket);
+
         void pass_cmd(int client_socket, std::string buffer);
         void join_cmd(int client_socket, std::string buffer); 
         void nick_cmd(int client_socket, std::string buffer); 
