@@ -40,6 +40,7 @@ class Server
         void nick_cmd(int client_socket, std::string buffer); 
         void user_cmd(int client_socket, std::string buffer); 
         void kick_cmd(int client_socket, std::string buffer);
+        void part_cmd(int client_socket,std::string buffer);
         void invite_user(std::string user);
         void invite_cmd(int client_socket, std::string buffer);
         void msg(int client_socket, std::string buffer);
