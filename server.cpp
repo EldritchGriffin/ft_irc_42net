@@ -204,6 +204,8 @@ std::vector<std::string> split_multiple_targets(std::string channel_name)
 
 void Server::msg(int client_socket, std::string buffer)
 {
+    std::cout << "l command f MSG :" << buffer << std::endl;
+    // buffer.erase(0, buffer.find(":") + 1);
     std::string channel_name = buffer.substr(0, buffer.find(" "));
     buffer.erase(0, channel_name.length() + 1);
     buffer.erase(0, buffer.find(":") + 1);
@@ -330,7 +332,7 @@ void Server::handle_input(int client_socket)
     {
         this->join_cmd(client_socket, buffer);
     }
-    else if(command == "MSG")
+    else if(command == "MSG" || command == "PRIVMSG")
     {
         this->msg(client_socket, buffer);
     }
