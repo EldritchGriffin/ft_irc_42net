@@ -7,18 +7,19 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
-enum clientState
+enum States
 {
-    GUEST,
-    USER,
-    OPERATOR,
-    ADMIN
-};
+    AUTHENTICATED,
+    NOT_AUTHENTICATED,
 
-enum passState
-{
     PASS,
-    NOPASS
+    NOPASS,
+
+    NICK,
+    NONICK,
+
+    USER,
+    NOUSER
 };
 
 
@@ -34,24 +35,35 @@ class Client
         
         int socket;
         sockaddr_in addr;
-        int grade;
+
         int pass_state;
+        int nick_state;
+        int user_state;
+        int grade;
+
     public:
         Client();
         Client(int socket, sockaddr_in client_addr);
 
-        void set_pass_state();
-        void set_grade(int grade);
         void set_nickname(std::string nickname);
         void set_username(std::string username);
         void set_realname(std::string realname);
+        void set_grade(int grade);
+        void set_pass_state(int state);
+        void set_nick_state(int state);
+        void set_user_state(int state);
 
-        int get_pass_state() const;
-        int get_grade() const;
         int get_socket() const;
+
         std::string get_nickname() const;
         std::string get_username() const;
         std::string get_realname() const;
+
+        int get_pass_state() const;
+        int get_grade() const;
+        int get_nick_state() const;
+        int get_user_state() const;
+
 
         ~Client();        
 };

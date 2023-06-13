@@ -82,7 +82,6 @@ std::string Server::client_request(int client_socket)
     return std::string(buffer);
 }
 
-
 void Server::join_cmd(int client_socket, std::string buffer)
 {
     if(this->clients[client_socket].get_pass_state() == NOPASS)
@@ -131,52 +130,6 @@ void Server::join_cmd(int client_socket, std::string buffer)
     channel.set_admin(this->clients[client_socket]);
     this->channels.push_back(channel);
     send(client_socket, "JOIN OKK\r\n", 9, 0);
-}
-
-void Server::pass_cmd(int client_socket, std::string buffer)
-{
-    std::cout << buffer << std::endl;
-    if(buffer == this->srv_password + '\n')//TODO remove the \n;
-    {
-        this->clients[client_socket].set_pass_state();
-        send(client_socket, "PASS OK\r\n", 9, 0);
-    }
-    else
-    {
-        send(client_socket, "PASS ERR\r\n", 10, 0);
-    }
-}
-
-void Server::nick_cmd(int client_socket, std::string buffer)
-{
-    if(this->clients[client_socket].get_pass_state() == NOPASS)
-    {
-        send(client_socket, "ERR PASS\r\n", 10, 0);
-        return;
-    }
-    if(buffer.empty())
-    {
-        send(client_socket, "ERR NICK\r\n", 10, 0);
-        return;
-    }
-    this->clients[client_socket].set_nickname(buffer);
-    send(client_socket, "NICK OK\r\n", 9, 0);
-}
-
-void Server::user_cmd(int client_socket, std::string buffer)
-{
-    if(this->clients[client_socket].get_pass_state() == NOPASS)
-    {
-        send(client_socket, "ERR PASS\r\n", 10, 0);
-        return;
-    }
-    if(buffer.empty())
-    {
-        send(client_socket, "ERR USER\r\n", 10, 0);
-        return;
-    }
-    this->clients[client_socket].set_username(buffer);
-    send(client_socket, "USER OK\r\n", 9, 0);
 }
 
 void Server::msg(int client_socket, std::string buffer)
