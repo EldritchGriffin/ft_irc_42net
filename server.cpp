@@ -140,7 +140,6 @@ void Server::msg(int client_socket, std::string buffer)
     std::string channel_name = buffer.substr(0, buffer.find(" "));
     buffer.erase(0, channel_name.length() + 1);
     buffer.erase(0, buffer.find(":") + 1);
-    buffer.append("\n");
     std::vector<std::string> target_names = split_multiple_targets(channel_name);
     for (unsigned int i = 0; i < target_names.size(); i++)
     {
@@ -160,8 +159,8 @@ void Server::msg(int client_socket, std::string buffer)
         {
             if(it->second.get_nickname() == channel_name)
             {
-                send(it->second.get_socket(), (buffer + "\n").c_str(), buffer.length() + 1, 0);
-                // send(it->second.get_socket(), (client_caller.get_nickname() + " :" + buffer + "\n").c_str(), buffer.length() + client_caller.get_nickname().length() + 3, 0);
+                std::string msg = ":" + client_caller.get_nickname() + " PRIVMSG " + channel_name + " :" + buffer + "\n";
+                send(it->second.get_socket(), msg.c_str(), msg.length(), 0);
             }
         }
     }
