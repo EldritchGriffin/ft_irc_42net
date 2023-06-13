@@ -3,6 +3,7 @@ CC 		:= c++
 CFLAG	:= -Wall -Werror -Wextra -std=c++98
 NAME 	:= ircserv
 HEADERS := server.hpp Client.hpp Channel.hpp Tools.hpp
+# HEADERS := server.hpp Client.hpp Channel.hpp 
 OBJ		:= $(SRC:%.cpp=%.o)
 
 all: $(NAME)
