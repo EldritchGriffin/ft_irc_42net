@@ -218,7 +218,7 @@ void Server::msg(int client_socket, std::string buffer)
         {
             if(it->get_name() == channel_name)
             {
-                it->send_message(client_caller.get_nickname() + " :" + buffer + "\n");
+                it->send_message(client_caller.get_nickname() + " :" + buffer + "\n", client_socket);
             }
         }
         
@@ -234,36 +234,110 @@ void Server::msg(int client_socket, std::string buffer)
     return;
 }
 
+void Server::kick_cmd(int client_socket, std::string buffer)
+{
+    std::string ch = buffer.substr(0,buffer.find(" "));
+    buffer.erase(0,ch.length()+1);
+    std::string user = buffer.substr(0,buffer.find(" "));
+    buffer.erase(0,user.length()+1);
+    std::string reason = buffer.substr(0);
+    for(std::vector<Channel>::iterator it = this->channels.begin(); it != this->channels.end(); ++it)
+    {
+        if(it->get_name() == ch)
+        {
+            if(it->get_admin().get_nickname() == this->clients[client_socket].get_nickname())
+            {
+                it->kick_user(user);
+                send(client_socket, "KICK OK\r\n", 9, 0);
+                return;
+            }
+            else
+            {
+                send(client_socket, "ERR KICK\r\n", 10, 0);
+                return;
+            }
+        }
+    }
+}
 
+void Channel::invite_user(std::string user)
+{
+    for(std::vector<Client>::iterator it = this->users.begin(); it != this->users.end(); ++it)
+    {
+        if(it->get_nickname() == user)
+        {
+            return;
+        }
+    }
+}
 
+void Server::invite_cmd(int client_socket, std::string buffer){
+    std::string user = buffer.substr(0,buffer.find(" "));
+    buffer.erase(0,user.length()+1);
+    std::string ch = buffer.substr(0,buffer.find(" "));
+
+    for(std::vector<Channel>::iterator it = this->channels.begin(); it != this->channels.end(); ++it)
+    {
+        if(it->get_name() == ch)
+        {
+            if(it->get_admin().get_nickname() == this->clients[client_socket].get_nickname())
+            {
+                it->invite_user(user);
+                send(client_socket, "INVITE OK\r\n", 11, 0);
+                return;
+            }
+            else
+            {
+                send(client_socket, "ERR INVITE\r\n", 12, 0);
+                return;
+            }
+        }
+    }
+
+}
 
 void Server::handle_input(int client_socket)
-{
-    std::string buffer = client_request(client_socket);
+{   
+    std::string buffer = this->client_request(client_socket);
     if(buffer.empty())
-        return;
-    std::cout << "command cougth :" << buffer  << std::endl;
-    // std::cout << "last character : " << (int)buffer[buffer.length() - 1] << std::endl;
-    // std::cout << "last of last character : " << (int)buffer[buffer.length() - 2] << std::endl;
-    std::string cmd = buffer.substr(0, buffer.find(" "));
-    buffer.erase(0, cmd.length() + 1);    
-    if(cmd == "JOIN")
-        join_cmd(client_socket, buffer);
-    if(cmd == "PASS")
-        pass_cmd(client_socket, buffer);
-    if(cmd == "NICK")
-        nick_cmd(client_socket, buffer);
-    if(cmd == "USER")
-        user_cmd(client_socket, buffer);
-    // std::cout << buffer << " | " << cmd << std::endl;
-    // std::cout << this->clients[client_socket].get_pass_state() << std::endl;
-    if(cmd == "MSG" || cmd == "PRIVMSG") // 1st send by nc || 2nd limechat add PRV to MSG
     {
-        std::cout << "command MSG detected " << std::endl;
-        
-        msg(client_socket, buffer);
+        return;
     }
-    
+    // std::cout << buffer << std::endl;
+    std::string command = buffer.substr(0, buffer.find(" "));
+    buffer.erase(0, command.length() + 1);
+    if(command == "PASS")
+    {
+        this->pass_cmd(client_socket, buffer);
+    }
+    else if(command == "INVITE")
+    {
+        this->invite_cmd(client_socket, buffer);
+    }
+    else if(command == "NICK")
+    {
+        this->nick_cmd(client_socket, buffer);
+    }
+    else if(command == "USER")
+    {
+        this->user_cmd(client_socket, buffer);
+    }
+    else if (command == "KICK")
+    {
+        this->kick_cmd(client_socket, buffer);
+    }
+    else if(command == "JOIN")
+    {
+        this->join_cmd(client_socket, buffer);
+    }
+    else if(command == "MSG")
+    {
+        this->msg(client_socket, buffer);
+    }
+    else
+    {
+        send(client_socket, "ERR CMD\r\n", 9, 0);
+    }
 }
 
 void Server::poll_handler()

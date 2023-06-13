@@ -39,6 +39,9 @@ class Server
         void join_cmd(int client_socket, std::string buffer); 
         void nick_cmd(int client_socket, std::string buffer); 
         void user_cmd(int client_socket, std::string buffer); 
+        void kick_cmd(int client_socket, std::string buffer);
+        void invite_user(std::string user);
+        void invite_cmd(int client_socket, std::string buffer);
         void msg(int client_socket, std::string buffer);
 
         void init_server();
