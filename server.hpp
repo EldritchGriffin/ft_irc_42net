@@ -47,7 +47,17 @@ class Server
         std::string client_request(int client_socket);
         void handle_input(int client_socket);
     public:
+
         Server(int port, std::string password);
         ~Server();
         void run();
+
+        //getters
+        int get_srv_socket() const;
+        int get_srv_port() const;
+        std::string get_srv_password() const;
+        std::vector<pollfd> get_pollfds() const;
+        std::map<int ,Client> get_clients() const;
+        std::vector<Channel> get_channels() const;
+        
 };

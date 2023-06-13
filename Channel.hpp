@@ -18,7 +18,6 @@ class Channel{
         std::vector<Client> users;
         std::vector<Client> operators;
     public:
-        Channel();
         Channel(std::string name, std::string topic);
         ~Channel();
 

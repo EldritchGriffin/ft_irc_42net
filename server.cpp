@@ -92,59 +92,10 @@ std::string Server::client_request(int client_socket)
         close(client_socket);
         return std::string();
     }
-    return (casa_rm(std::string(buffer)));
-    // return std::string(buffer);
+    return (casa_rm(std::string(buffer)));//TODO rename casa_rm
 }
 
-void Server::join_cmd(int client_socket, std::string buffer)
-{
-    if(this->clients[client_socket].get_pass_state() == NOPASS)
-    {
-        send(client_socket, "ERR PASS\r\n", 10, 0);
-        return;
-    }
-    if(buffer.empty())
-    {
-        send(client_socket, "ERR JOIN\r\n", 10, 0);
-        return;
-    }
-    std::string channel_name = buffer.substr(0, buffer.find(" "));
-    buffer.erase(0, channel_name.length());
-    if(buffer.empty())
-    {
-        send(client_socket, "ERR JOIN\r\n", 10, 0);
-        return;
-    }
-    std::string channel_password = buffer.substr(0, buffer.find(" "));
-    buffer.erase(0, channel_password.length());
-    if(buffer.empty())
-    {
-        send(client_socket, "ERR JOIN\r\n", 10, 0);
-        return;
-    }
 
-    for(std::vector<Channel>::iterator it = this->channels.begin(); it != this->channels.end(); ++it)
-    {
-        if(it->get_name() == channel_name)
-        {
-            if(it->get_password() == channel_password)
-            {
-                it->add_user(this->clients[client_socket]);
-                send(client_socket, "JOIN OK\r\n", 9, 0);
-                return;
-            }
-        }
-        else
-        {
-            send(client_socket, "wrong pass\n" ,11, 0);
-            return ;
-        }
-    }
-    Channel channel(channel_name, channel_password);
-    channel.set_admin(this->clients[client_socket]);
-    this->channels.push_back(channel);
-    send(client_socket, "JOIN OKK\r\n", 9, 0);
-}
 
 std::ostream & operator << (std::ostream & o, Client const & rhs)
 {
@@ -182,7 +133,8 @@ void    pp_pp(std::map<int, Client> &tmp)
     }
 }
 
-
+//ayoub can u put the (test,test,test) behavior in a function, because we are going to use it in a lot of other functions.
+//in join for example we need it to join multiple channels at the same time.
 void Server::msg(int client_socket, std::string buffer)
 {
     std::string channel_name = buffer.substr(0, buffer.find(" "));
@@ -298,6 +250,35 @@ void Server::run()
         }
     }
 }
+
+
+
+//Getters
+int Server::get_srv_socket() const
+{
+    return (this->srv_socket);
+}
+
+int Server::get_srv_port() const
+{
+    return (this->srv_port);
+}
+
+std::vector<struct pollfd> Server::get_pollfds() const
+{
+    return (this->pollfds);
+}
+
+std::map<int, Client> Server::get_clients() const
+{
+    return (this->clients);
+}
+
+std::vector<Channel> Server::get_channels() const
+{
+    return (this->channels);
+}
+
 
 //TODO modify the messages sent to the users when executing authentification commands;
 //TODO find a way to mark a user as authentificated after entering all auth commands;
