@@ -12,11 +12,13 @@
 #include <unistd.h>
 #include <poll.h>
 #include <stdlib.h>
+// #include "Tools.hpp"
 
 //TODO create whatever classes we need to make the server work;
 
 class Client;
 class Channel;
+
 
 class Server
 {
@@ -30,6 +32,8 @@ class Server
         std::vector<Channel> channels;
 
         //private methods
+
+        void auth_client(int client_socket);
 
         void pass_cmd(int client_socket, std::string buffer);
         void join_cmd(int client_socket, std::string buffer); 

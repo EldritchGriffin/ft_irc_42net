@@ -9,25 +9,17 @@ Client::Client(int socket, sockaddr_in client_addr)
 {
     this->socket = socket;
     this->addr = client_addr;
-    this->grade = GUEST;
     this->nickname = "";
     this->username = "";
     this->realname = "";
     this->pass_state = NOPASS;
+    this->nick_state = NONICK;
+    this->user_state = NOUSER;
+    this->grade = NOT_AUTHENTICATED;
 }
 
 Client::~Client()
 {
-}
-
-int Client::get_grade() const
-{
-    return this->grade;
-}
-
-void Client::set_grade(int grade)
-{
-    this->grade = grade;
 }
 
 std::string Client::get_nickname() const
@@ -65,12 +57,42 @@ int Client::get_pass_state() const
     return this->pass_state;
 }
 
-void Client::set_pass_state()
+void Client::set_pass_state(int state)
 {
-    this->pass_state = PASS;
+    this->pass_state = state;
 }
 
 int Client::get_socket() const
 {
     return this->socket;
+}
+
+int Client::get_nick_state() const
+{
+    return this->nick_state;
+}
+
+void Client::set_nick_state(int state)
+{
+    this->nick_state = state;
+}
+
+int Client::get_user_state() const
+{
+    return this->user_state;
+}
+
+void Client::set_user_state(int state)
+{
+    this->user_state = state;
+}
+
+int Client::get_grade() const
+{
+    return this->grade;
+}
+
+void Client::set_grade(int grade)
+{
+    this->grade = grade;
 }

@@ -1,4 +1,5 @@
 #include "Tools.hpp"
+#include "Client.hpp"
 
 // std::vector<std::string> split(std::string str)
 // {
@@ -16,4 +17,13 @@
 //     }
 //     result.push_back(tmp);
 //     return result;
+// }
+
+// void    pp_vector(std::vector<Client> &tmp)
+// {
+//     unsigned int i = 0;
+//     for (std::vector<Client>::iterator o = tmp.begin(); o != tmp.end(); o++)
+//     {
+//         std::cout << "Client number : " << i << *o ;
+//     }
 // }
