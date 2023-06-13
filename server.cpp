@@ -182,12 +182,8 @@ void    pp_pp(std::map<int, Client> &tmp)
     }
 }
 
-
-void Server::msg(int client_socket, std::string buffer)
+std::vector<std::string> split_multiple_targets(std::string channel_name)
 {
-    std::string channel_name = buffer.substr(0, buffer.find(" "));
-    buffer.erase(0, channel_name.length() + 1);
-    buffer.erase(0, buffer.find(":") + 1);
     std::vector<std::string> target_names;
     if (channel_name.find(',', 0) != std::string::npos)
     {
@@ -203,6 +199,16 @@ void Server::msg(int client_socket, std::string buffer)
     }
     else
         target_names.push_back(channel_name);
+    return (target_names);
+}
+
+void Server::msg(int client_socket, std::string buffer)
+{
+    std::string channel_name = buffer.substr(0, buffer.find(" "));
+    buffer.erase(0, channel_name.length() + 1);
+    buffer.erase(0, buffer.find(":") + 1);
+    buffer.append("\r\n");
+    std::vector<std::string> target_names = split_multiple_targets(channel_name);
     for (unsigned int i = 0; i < target_names.size(); i++)
     {
         pp_ch(channels);
@@ -212,7 +218,7 @@ void Server::msg(int client_socket, std::string buffer)
         {
             if(it->get_name() == channel_name)
             {
-                it->send_message(buffer, client_socket);
+                it->send_message(client_caller.get_nickname() + " :" + buffer + "\n", client_socket);
             }
         }
         
