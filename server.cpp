@@ -197,7 +197,8 @@ void Server::msg(int client_socket, std::string buffer)
     {
         if(it->get_name() == channel_name)
         {
-            it->send_message(message);
+            it->send_message(message, client_socket);
+            send(client_socket, "MSG OK\r\n", 8, 0);
             return;
         }
     }
@@ -205,24 +206,110 @@ void Server::msg(int client_socket, std::string buffer)
     return;
 }
 
-void Server::handle_input(int client_socket)
+void Server::kick_cmd(int client_socket, std::string buffer)
 {
-    std::string buffer = client_request(client_socket);
+    std::string ch = buffer.substr(0,buffer.find(" "));
+    buffer.erase(0,ch.length()+1);
+    std::string user = buffer.substr(0,buffer.find(" "));
+    buffer.erase(0,user.length()+1);
+    std::string reason = buffer.substr(0);
+    for(std::vector<Channel>::iterator it = this->channels.begin(); it != this->channels.end(); ++it)
+    {
+        if(it->get_name() == ch)
+        {
+            if(it->get_admin().get_nickname() == this->clients[client_socket].get_nickname())
+            {
+                it->kick_user(user);
+                send(client_socket, "KICK OK\r\n", 9, 0);
+                return;
+            }
+            else
+            {
+                send(client_socket, "ERR KICK\r\n", 10, 0);
+                return;
+            }
+        }
+    }
+}
+
+void Channel::invite_user(std::string user)
+{
+    for(std::vector<Client>::iterator it = this->users.begin(); it != this->users.end(); ++it)
+    {
+        if(it->get_nickname() == user)
+        {
+            return;
+        }
+    }
+}
+
+void Server::invite_cmd(int client_socket, std::string buffer){
+    std::string user = buffer.substr(0,buffer.find(" "));
+    buffer.erase(0,user.length()+1);
+    std::string ch = buffer.substr(0,buffer.find(" "));
+
+    for(std::vector<Channel>::iterator it = this->channels.begin(); it != this->channels.end(); ++it)
+    {
+        if(it->get_name() == ch)
+        {
+            if(it->get_admin().get_nickname() == this->clients[client_socket].get_nickname())
+            {
+                it->invite_user(user);
+                send(client_socket, "INVITE OK\r\n", 11, 0);
+                return;
+            }
+            else
+            {
+                send(client_socket, "ERR INVITE\r\n", 12, 0);
+                return;
+            }
+        }
+    }
+
+}
+
+void Server::handle_input(int client_socket)
+{   
+    std::string buffer = this->client_request(client_socket);
     if(buffer.empty())
+    {
         return;
-    std::string cmd = buffer.substr(0, buffer.find(" "));
-    buffer.erase(0, cmd.length() + 1);    
-    if(cmd == "JOIN")
-        join_cmd(client_socket, buffer);
-    if(cmd == "PASS")
-        pass_cmd(client_socket, buffer);
-    if(cmd == "NICK")
-        nick_cmd(client_socket, buffer);
-    if(cmd == "USER")
-        user_cmd(client_socket, buffer);
-    if(cmd == "MSG")
-        msg(client_socket, buffer);
-    
+    }
+    // std::cout << buffer << std::endl;
+    std::string command = buffer.substr(0, buffer.find(" "));
+    buffer.erase(0, command.length() + 1);
+    if(command == "PASS")
+    {
+        this->pass_cmd(client_socket, buffer);
+    }
+    else if(command == "INVITE")
+    {
+        this->invite_cmd(client_socket, buffer);
+    }
+    else if(command == "NICK")
+    {
+        this->nick_cmd(client_socket, buffer);
+    }
+    else if(command == "USER")
+    {
+        this->user_cmd(client_socket, buffer);
+    }
+    else if (command == "KICK")
+    {
+        this->kick_cmd(client_socket, buffer);
+    }
+    else if(command == "JOIN")
+    {
+        this->join_cmd(client_socket, buffer);
+    }
+    else if(command == "MSG")
+    {
+        this->msg(client_socket, buffer);
+    }
+    else
+    {
+        send(client_socket, "ERR CMD\r\n", 9, 0);
+    }
 }
 
 void Server::poll_handler()

@@ -33,12 +33,14 @@ class Channel{
         Client get_admin() const;
 
         void add_user(Client user);
+        void kick_user(std::string user);
+        void invite_user(std::string user);
         void add_operator(Client user);
 
         void remove_user(Client user);
         void remove_operator(Client user);
 
-        void send_message(std::string message);
+        void send_message(std::string message,int client_socket);
 };
 
 
