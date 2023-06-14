@@ -40,6 +40,7 @@ class Server
         void nick_cmd(int client_socket, std::string buffer); 
         void user_cmd(int client_socket, std::string buffer); 
         void kick_cmd(int client_socket, std::string buffer);
+        void part_cmd(int client_socket,std::string buffer);
         void invite_user(std::string user);
         void invite_cmd(int client_socket, std::string buffer);
         void msg(int client_socket, std::string buffer);
@@ -50,7 +51,25 @@ class Server
         std::string client_request(int client_socket);
         void handle_input(int client_socket);
     public:
+
         Server(int port, std::string password);
         ~Server();
         void run();
+
+        //getters
+        int get_srv_socket() const;
+        int get_srv_port() const;
+        std::string get_srv_password() const;
+        std::vector<pollfd> get_pollfds() const;
+        std::map<int ,Client> get_clients() const;
+        std::vector<Channel> get_channels() const;
+
+        //setters
+        void set_srv_socket(int srv_socket);
+        void set_srv_port(int srv_port);
+        void set_pollfds(std::vector<pollfd> pollfds);
+        void set_clients(std::map<int ,Client> clients);
+        void set_channels(std::vector<Channel> channels);
+        
+        
 };

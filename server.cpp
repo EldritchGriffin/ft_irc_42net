@@ -1,6 +1,7 @@
 #include "server.hpp"
 #include "Channel.hpp"
 #include "Client.hpp"
+#include "Tools.hpp"
 
 
 
@@ -92,59 +93,10 @@ std::string Server::client_request(int client_socket)
         close(client_socket);
         return std::string();
     }
-    return (casa_rm(std::string(buffer)));
-    // return std::string(buffer);
+    return (casa_rm(std::string(buffer)));//TODO rename casa_rm
 }
 
-void Server::join_cmd(int client_socket, std::string buffer)
-{
-    if(this->clients[client_socket].get_pass_state() == NOPASS)
-    {
-        send(client_socket, "ERR PASS\r\n", 10, 0);
-        return;
-    }
-    if(buffer.empty())
-    {
-        send(client_socket, "ERR JOIN\r\n", 10, 0);
-        return;
-    }
-    std::string channel_name = buffer.substr(0, buffer.find(" "));
-    buffer.erase(0, channel_name.length());
-    if(buffer.empty())
-    {
-        send(client_socket, "ERR JOIN\r\n", 10, 0);
-        return;
-    }
-    std::string channel_password = buffer.substr(0, buffer.find(" "));
-    buffer.erase(0, channel_password.length());
-    if(buffer.empty())
-    {
-        send(client_socket, "ERR JOIN\r\n", 10, 0);
-        return;
-    }
 
-    for(std::vector<Channel>::iterator it = this->channels.begin(); it != this->channels.end(); ++it)
-    {
-        if(it->get_name() == channel_name)
-        {
-            if(it->get_password() == channel_password)
-            {
-                it->add_user(this->clients[client_socket]);
-                send(client_socket, "JOIN OK\r\n", 9, 0);
-                return;
-            }
-        }
-        else
-        {
-            send(client_socket, "wrong pass\n" ,11, 0);
-            return ;
-        }
-    }
-    Channel channel(channel_name, channel_password);
-    channel.set_admin(this->clients[client_socket]);
-    this->channels.push_back(channel);
-    send(client_socket, "JOIN OKK\r\n", 9, 0);
-}
 
 std::ostream & operator << (std::ostream & o, Client const & rhs)
 {
@@ -182,34 +134,12 @@ void    pp_pp(std::map<int, Client> &tmp)
     }
 }
 
-std::vector<std::string> split_multiple_targets(std::string channel_name)
-{
-    std::vector<std::string> target_names;
-    if (channel_name.find(',', 0) != std::string::npos)
-    {
-        while (channel_name.find(',', 0) != std::string::npos)
-        {
-            std::string tmp = channel_name.substr(0, channel_name.find(',', 0));
-            channel_name.erase(0, channel_name.find(',', 0) + 1);
-            target_names.push_back(tmp);
-        }
-        std::string tmp = channel_name.substr(0);
-        // channel_name.erase(0, channel_name.find(' ', 0));
-        target_names.push_back(tmp);
-    }
-    else
-        target_names.push_back(channel_name);
-    return (target_names);
-}
-
 void Server::msg(int client_socket, std::string buffer)
 {
-    std::cout << "l command f MSG :" << buffer << std::endl;
     // buffer.erase(0, buffer.find(":") + 1);
     std::string channel_name = buffer.substr(0, buffer.find(" "));
     buffer.erase(0, channel_name.length() + 1);
     buffer.erase(0, buffer.find(":") + 1);
-    buffer.append("\r\n");
     std::vector<std::string> target_names = split_multiple_targets(channel_name);
     for (unsigned int i = 0; i < target_names.size(); i++)
     {
@@ -228,8 +158,10 @@ void Server::msg(int client_socket, std::string buffer)
         for(std::map<int, Client>::iterator it = this->clients.begin(); it != this->clients.end(); ++it)
         {
             if(it->second.get_nickname() == channel_name)
-            {
-                send(it->second.get_socket(), (client_caller.get_nickname() + " :" + buffer + "\n").c_str(), buffer.length() + client_caller.get_nickname().length() + 3, 0);
+            {//(PRIVMSG) :<sender> PRIVMSG <target> :<message>\r\n
+                std::string msg = ":" + client_caller.get_nickname() + " PRIVMSG " + channel_name + " :" + buffer + "\n";
+                std::cout << "length li kaytsift hwa :" << msg.length() << std::endl;
+                send(it->second.get_socket(), msg.c_str(), msg.length(), 0);
             }
         }
     }
@@ -250,12 +182,12 @@ void Server::kick_cmd(int client_socket, std::string buffer)
             if(it->get_admin().get_nickname() == this->clients[client_socket].get_nickname())
             {
                 it->kick_user(user);
-                send(client_socket, "KICK OK\r\n", 9, 0);
+                send(client_socket, "KICK OK\n", 8, 0);
                 return;
             }
             else
             {
-                send(client_socket, "ERR KICK\r\n", 10, 0);
+                send(client_socket, "ERR KICK\n", 9, 0);
                 return;
             }
         }
@@ -285,17 +217,30 @@ void Server::invite_cmd(int client_socket, std::string buffer){
             if(it->get_admin().get_nickname() == this->clients[client_socket].get_nickname())
             {
                 it->invite_user(user);
-                send(client_socket, "INVITE OK\r\n", 11, 0);
+                send(client_socket, "INVITE OK\n", 10, 0);
                 return;
             }
             else
             {
-                send(client_socket, "ERR INVITE\r\n", 12, 0);
+                send(client_socket, "ERR INVITE\n", 11, 0);
                 return;
             }
         }
     }
+}
 
+void Server::part_cmd(int client_socket,std::string buffer){
+    std::string ch = buffer.substr(0,buffer.find(" "));
+    for(std::vector<Channel>::iterator it = this->channels.begin(); it != this->channels.end(); ++it)
+    {
+        if(it->get_name() == ch)
+        {
+            it->remove_user(this->clients[client_socket]);
+            send(client_socket, "PART OK\r\n", 9, 0);
+            return;
+        }
+    }
+    send(client_socket, "ERR PART\r\n", 10, 0);
 }
 
 void Server::handle_input(int client_socket)
@@ -305,9 +250,13 @@ void Server::handle_input(int client_socket)
     {
         return;
     }
-    // std::cout << buffer << std::endl;
+    std::cout << "|" << buffer << "|" << std::endl;
     std::string command = buffer.substr(0, buffer.find(" "));
     buffer.erase(0, command.length() + 1);
+    if(command == "PART")
+    {
+        this->part_cmd(client_socket, buffer);
+    }
     if(command == "PASS")
     {
         this->pass_cmd(client_socket, buffer);
@@ -331,6 +280,7 @@ void Server::handle_input(int client_socket)
     else if(command == "JOIN")
     {
         this->join_cmd(client_socket, buffer);
+        pp_ch(channels);
     }
     else if(command == "MSG" || command == "PRIVMSG")
     {
@@ -338,7 +288,7 @@ void Server::handle_input(int client_socket)
     }
     else
     {
-        send(client_socket, "ERR CMD\r\n", 9, 0);
+        send(client_socket, "ERR CMD\n", 8, 0);
     }
 }
 
@@ -380,6 +330,60 @@ void Server::run()
         }
     }
 }
+
+//setters
+
+void Server::set_srv_socket(int srv_socket)
+{
+    this->srv_socket = srv_socket;
+}
+
+void Server::set_srv_port(int srv_port)
+{
+    this->srv_port = srv_port;
+}
+
+void Server::set_pollfds(std::vector<struct pollfd> pollfds)
+{
+    this->pollfds = pollfds;
+}
+
+void Server::set_clients(std::map<int, Client> clients)
+{
+    this->clients = clients;
+}
+
+void Server::set_channels(std::vector<Channel> channels)
+{
+    this->channels = channels;
+}
+
+//Getters
+int Server::get_srv_socket() const
+{
+    return (this->srv_socket);
+}
+
+int Server::get_srv_port() const
+{
+    return (this->srv_port);
+}
+
+std::vector<struct pollfd> Server::get_pollfds() const
+{
+    return (this->pollfds);
+}
+
+std::map<int, Client> Server::get_clients() const
+{
+    return (this->clients);
+}
+
+std::vector<Channel> Server::get_channels() const
+{
+    return (this->channels);
+}
+
 
 //TODO modify the messages sent to the users when executing authentification commands;
 //TODO find a way to mark a user as authentificated after entering all auth commands;
