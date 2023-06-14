@@ -15,7 +15,7 @@ void    create_channel(int client_socket, std::string channel_name, std::string 
     new_channel.add_user(client_caller);
     channels.push_back(new_channel);
     server.set_channels(channels);
-    std::string msg = ":" + client_caller.get_nickname() + " JOINED " + channel_name + "\n";
+    std::string msg = ":" + client_caller.get_nickname() + " JOIN " + channel_name + "\n";
     send(client_socket, msg.c_str(), msg.length(), 0);
 }
 
@@ -33,19 +33,19 @@ void join_channel(int client_socket, std::string channel_name, std::string key, 
             if (it->get_password() == key)
             {
                 it->add_user(client_caller);
-                it->send_message(":" + client_caller.get_nickname() + " JOIN " + channel_name, client_socket);
+                std::string msg = ":" + client_caller.get_nickname() + " JOIN " + channel_name + "\r\n";
+                send(client_socket, msg.c_str(), msg.length(), 0);
                 return;
             }
             else
             {
-                std::string msg = "Wrong password for channel " + channel_name + "\n";
-                send(client_socket, msg.c_str(), msg.length(), 0);
                 return;
             }
         }
     }
     create_channel(client_socket, channel_name, key, server);
-    send(client_socket, "Channel created\n", 16, 0);
+    std::string msg = ":" + client_caller.get_nickname() + " JOIN " + channel_name + "\r\n";
+    send(client_socket, msg.c_str(), msg.length(), 0);
 }
 
 void Server::join_cmd(int client_socket, std::string buffer)

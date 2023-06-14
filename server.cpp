@@ -120,7 +120,7 @@ void    pp_ch(std::vector<Channel> &tmp)
     for (std::vector<Channel>::iterator o = tmp.begin(); o != tmp.end(); o++)
     {
         i++;
-        std::cout << "Channel number : " << i << " " << *o;
+        // std::cout << "Channel number : " << i << " " << *o;
     }
 }
 
@@ -130,22 +130,23 @@ void    pp_pp(std::map<int, Client> &tmp)
     for (std::map<int, Client>::iterator o = tmp.begin(); o != tmp.end(); o++)
     {
         i++;
-        std::cout << "Client number : " << i << " " << o->second ;
+        // std::cout << "Client number : " << i << " " << o->second ;
     }
 }
 
 void Server::msg(int client_socket, std::string buffer)
 {
-    buffer.erase(0, buffer.find(":") + 1);
+    Client client_caller = clients[client_socket];
+    std::cout <<"LIMECHAT SENT:" << buffer << "|" << std::endl;
     std::string channel_name = buffer.substr(0, buffer.find(" "));
     buffer.erase(0, channel_name.length() + 1);
-    buffer.erase(0, buffer.find(":") + 1);
+    if (buffer[0] == ':')
+        buffer.erase(0, 1);
     std::vector<std::string> target_names = split_multiple_targets(channel_name);
     for (unsigned int i = 0; i < target_names.size(); i++)
     {
         pp_ch(channels);
         channel_name = target_names[i];
-        Client client_caller = clients[client_socket];
         for(std::vector<Channel>::iterator it = this->channels.begin(); it != this->channels.end(); ++it)
         {
             if(it->get_name() == channel_name)
@@ -153,13 +154,12 @@ void Server::msg(int client_socket, std::string buffer)
                 it->send_message(client_caller.get_nickname() + " :" + buffer + "\n", client_socket);
             }
         }
-        
         pp_pp(clients);
         for(std::map<int, Client>::iterator it = this->clients.begin(); it != this->clients.end(); ++it)
         {
             if(it->second.get_nickname() == channel_name)
             {
-                std::string msg = ":" + client_caller.get_nickname() + " PRIVMSG " + channel_name + " :" + buffer + "\n";
+                std::string msg = ":" + client_caller.get_nickname() + " PRIVMSG " + channel_name + " :" + buffer + "\r\n";
                 send(it->second.get_socket(), msg.c_str(), msg.length(), 0);
             }
         }
@@ -181,12 +181,10 @@ void Server::kick_cmd(int client_socket, std::string buffer)
             if(it->get_admin().get_nickname() == this->clients[client_socket].get_nickname())
             {
                 it->kick_user(user);
-                send(client_socket, "KICK OK\n", 8, 0);
                 return;
             }
             else
             {
-                send(client_socket, "ERR KICK\n", 9, 0);
                 return;
             }
         }
@@ -216,12 +214,10 @@ void Server::invite_cmd(int client_socket, std::string buffer){
             if(it->get_admin().get_nickname() == this->clients[client_socket].get_nickname())
             {
                 it->invite_user(user);
-                send(client_socket, "INVITE OK\n", 10, 0);
                 return;
             }
             else
             {
-                send(client_socket, "ERR INVITE\n", 11, 0);
                 return;
             }
         }
@@ -235,11 +231,9 @@ void Server::part_cmd(int client_socket,std::string buffer){
         if(it->get_name() == ch)
         {
             it->remove_user(this->clients[client_socket]);
-            send(client_socket, "PART OK\r\n", 9, 0);
             return;
         }
     }
-    send(client_socket, "ERR PART\r\n", 10, 0);
 }
 
 void Server::handle_input(int client_socket)
@@ -287,7 +281,6 @@ void Server::handle_input(int client_socket)
     }
     else
     {
-        send(client_socket, "ERR CMD\n", 8, 0);
     }
 }
 
