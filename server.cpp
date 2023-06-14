@@ -136,10 +136,10 @@ void    pp_pp(std::map<int, Client> &tmp)
 
 void Server::msg(int client_socket, std::string buffer)
 {
-    buffer.erase(0, buffer.find(":") + 1);
+    // buffer.erase(0, buffer.find(":") + 1);
     std::string channel_name = buffer.substr(0, buffer.find(" "));
-    buffer.erase(0, channel_name.length() + 1);
-    buffer.erase(0, buffer.find(":") + 1);
+    // buffer.erase(0, channel_name.length() + 1);
+    // buffer.erase(0, buffer.find(":") + 1);
     std::vector<std::string> target_names = split_multiple_targets(channel_name);
     for (unsigned int i = 0; i < target_names.size(); i++)
     {
@@ -153,7 +153,6 @@ void Server::msg(int client_socket, std::string buffer)
                 it->send_message(client_caller.get_nickname() + " :" + buffer + "\n", client_socket);
             }
         }
-        
         pp_pp(clients);
         for(std::map<int, Client>::iterator it = this->clients.begin(); it != this->clients.end(); ++it)
         {
@@ -242,6 +241,57 @@ void Server::part_cmd(int client_socket,std::string buffer){
     send(client_socket, "ERR PART\r\n", 10, 0);
 }
 
+
+// void Server::list(int client_socket, std::string buffer) {
+//     buffer.erase(0, buffer.find(" ") + 1);
+//     std::string ch = buffer.substr(0, buffer.find(" "));
+//     for (std::vector<Channel>::iterator it = channels.begin(); it != channels.end(); ++it) {
+//         if (it->get_name() == ch) {
+//             std::string msg = "LIST " + it->get_name() + " ";
+//             std::string msg1 = it->list_cmd(msg);
+//             msg1 += "\r\n";
+//             send(client_socket, msg1.c_str(), msg1.length(), 0);
+//             return;
+//         }
+//     }
+//     send(client_socket, "ERR LIST\r\n", 10, 0);
+// }
+
+// void Server::list(int client_socket,std::string buffer)
+// {
+//     buffer.erase(0,buffer.find(" ")+1);
+//     std::string ch = buffer.substr(0,buffer.find(" "));
+//     for(std::vector<Channel>::iterator it = this->channels.begin(); it != this->channels.end(); ++it)
+//     {
+//         if(it->get_name() == ch)
+//         {
+//             std::string msg = "LIST " + it->get_name() + " " + it->get_admin().get_nickname() + " " + std::to_string(it->get_name().size()) + "\n";
+//             send(client_socket, msg.c_str(), msg.length(), 0);
+//             return;
+//         }
+//     }
+//     send(client_socket, "ERR LIST\r\n", 10, 0);
+// }
+
+void Server::kill_cmd(int client_socket, std::string buffer)
+{
+    std::string user = buffer.substr(0,buffer.find(" "));
+    buffer.erase(0,user.length()+1);
+    std::string reason = buffer.substr(0);
+    for(std::map<int,Client>::iterator it = this->clients.begin(); it != this->clients.end(); ++it)
+    {
+        if(it->second.get_nickname() == user)
+        {
+            send(it->first, ("KILL " + reason + "\n").c_str(), 16, 0);
+            close(it->first);
+            clients.erase(it);
+            send(client_socket, "KILL OK\n", 8, 0);
+            return;
+        }
+    }
+    send(client_socket, "ERR KILL\n", 9, 0);
+}
+
 void Server::handle_input(int client_socket)
 {   
     std::string buffer = this->client_request(client_socket);
@@ -252,11 +302,19 @@ void Server::handle_input(int client_socket)
     std::cout << "|" << buffer << "|" << std::endl;
     std::string command = buffer.substr(0, buffer.find(" "));
     buffer.erase(0, command.length() + 1);
-    if(command == "PART")
+    // if(command == "LIST")
+    // {
+    //     this->list(client_socket, buffer);
+    // }
+    if (command == "KILL")
+    {
+        this->kill_cmd(client_socket, buffer);
+    }
+    else if(command == "PART")
     {
         this->part_cmd(client_socket, buffer);
     }
-    if(command == "PASS")
+    else if(command == "PASS")
     {
         this->pass_cmd(client_socket, buffer);
     }
