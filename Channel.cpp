@@ -35,13 +35,14 @@ void Channel::set_topic(std::string topic)
     this->topic = topic;
 }
 
-// std::string Channel::list_cmd(std::string msg)
-// {
-//     for (std::vector<Client>::iterator user_it = users.begin(); user_it != users.end(); user_it++) {
-//         msg += " " + user_it->get_nickname();
-//     }
-//     return(msg);
-// }
+std::string Channel::list_cmd(std::string msg)
+{
+    for (std::vector<Client>::iterator user_it = users.begin(); user_it != users.end(); user_it++) {
+        msg += " " + user_it->get_nickname();
+    }
+    std::cout << msg << std::endl;
+    return(msg);
+}
 
 void Channel::kick_user(std::string user)
 {

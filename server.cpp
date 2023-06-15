@@ -120,7 +120,7 @@ void    pp_ch(std::vector<Channel> &tmp)
     for (std::vector<Channel>::iterator o = tmp.begin(); o != tmp.end(); o++)
     {
         i++;
-        // std::cout << "Channel number : " << i << " " << *o;
+        std::cout << "Channel number : " << i << " " << *o;
     }
 }
 
@@ -130,7 +130,7 @@ void    pp_pp(std::map<int, Client> &tmp)
     for (std::map<int, Client>::iterator o = tmp.begin(); o != tmp.end(); o++)
     {
         i++;
-        // std::cout << "Client number : " << i << " " << o->second ;
+        std::cout << "Client number : " << i << " " << o->second ;
     }
 }
 
@@ -236,6 +236,39 @@ void Server::part_cmd(int client_socket,std::string buffer){
     }
 }
 
+
+void Server::list(int client_socket, std::string buffer) {
+    // buffer.erase(0, buffer.find(" ") + 1);
+    std::string ch = buffer.substr(0, buffer.find(" "));
+    std::cout << "*** " << buffer << std::endl;
+    for (std::vector<Channel>::iterator it = channels.begin(); it != channels.end(); ++it) {
+        if (it->get_name() == ch) {
+            std::string msg = "LIST " + it->get_name() + " ";
+            std::string msg1 = it->list_cmd(msg);
+            msg1 += "\r\n";
+            send(client_socket, msg1.c_str(), msg1.length(), 0);
+            return;
+        }
+    }
+    send(client_socket, "ERR LIST\r\n", 10, 0);
+}
+
+// void Server::list(int client_socket,std::string buffer)
+// {
+//     buffer.erase(0,buffer.find(" ")+1);
+//     std::string ch = buffer.substr(0,buffer.find(" "));
+//     for(std::vector<Channel>::iterator it = this->channels.begin(); it != this->channels.end(); ++it)
+//     {
+//         if(it->get_name() == ch)
+//         {
+//             std::string msg = "LIST " + it->get_name() + " " + it->get_admin().get_nickname() + " " + std::to_string(it->get_name().size()) + "\n";
+//             send(client_socket, msg.c_str(), msg.length(), 0);
+//             return;
+//         }
+//     }
+//     send(client_socket, "ERR LIST\r\n", 10, 0);
+// }
+
 void Server::kill_cmd(int client_socket, std::string buffer)
 {
     std::string user = buffer.substr(0,buffer.find(" "));
@@ -265,6 +298,14 @@ void Server::handle_input(int client_socket)
     std::cout << "|" << buffer << "|" << std::endl;
     std::string command = buffer.substr(0, buffer.find(" "));
     buffer.erase(0, command.length() + 1);
+    // if(command == "MODE")
+    // {
+    //     this->mode_cmd(client_socket, buffer);
+    // }
+    // if(command == "LIST")
+    // {
+    //     this->list(client_socket, buffer);
+    // }
     if (command == "KILL")
     {
         this->kill_cmd(client_socket, buffer);
