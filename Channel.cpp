@@ -9,6 +9,7 @@ Channel::Channel(std::string name, std::string topic)
 {
     this->name = name;
     this->topic = topic;
+    this->password = "";
 }
 
 Channel::~Channel()
@@ -70,6 +71,7 @@ Client Channel::get_admin() const
 void Channel::add_user(Client user)
 {
     this->users.push_back(user);
+    this->send_message(":" + user.get_nickname() + " JOIN " + this->name + "\r\n", user.get_socket());
 }
 
 void Channel::add_operator(Client user)

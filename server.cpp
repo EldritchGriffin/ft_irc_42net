@@ -243,7 +243,7 @@ void Server::handle_input(int client_socket)
     {
         return;
     }
-    std::cout << "|" << buffer << "|" << std::endl;
+    std::cout << "|" + buffer + "|" << std::endl;
     std::string command = buffer.substr(0, buffer.find(" "));
     buffer.erase(0, command.length() + 1);
     if(command == "PART")

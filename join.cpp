@@ -15,8 +15,6 @@ void    create_channel(int client_socket, std::string channel_name, std::string 
     new_channel.add_user(client_caller);
     channels.push_back(new_channel);
     server.set_channels(channels);
-    std::string msg = ":" + client_caller.get_nickname() + " JOIN " + channel_name + "\n";
-    send(client_socket, msg.c_str(), msg.length(), 0);
 }
 
 void join_channel(int client_socket, std::string channel_name, std::string key, Server &server)
@@ -33,8 +31,6 @@ void join_channel(int client_socket, std::string channel_name, std::string key, 
             if (it->get_password() == key)
             {
                 it->add_user(client_caller);
-                std::string msg = ":" + client_caller.get_nickname() + " JOIN " + channel_name + "\r\n";
-                send(client_socket, msg.c_str(), msg.length(), 0);
                 return;
             }
             else
@@ -44,8 +40,6 @@ void join_channel(int client_socket, std::string channel_name, std::string key, 
         }
     }
     create_channel(client_socket, channel_name, key, server);
-    std::string msg = ":" + client_caller.get_nickname() + " JOIN " + channel_name + "\r\n";
-    send(client_socket, msg.c_str(), msg.length(), 0);
 }
 
 void Server::join_cmd(int client_socket, std::string buffer)
@@ -63,6 +57,8 @@ void Server::join_cmd(int client_socket, std::string buffer)
 
     for(unsigned int i = 0; i < channel_targets.size(); i++)
     {
+        if(key_targets.size() == 0 || i >= key_targets.size())
+            key_targets.push_back("");
         join_channel(client_socket, channel_targets[i], key_targets[i], *this);
     }
 }
