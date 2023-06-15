@@ -5,6 +5,7 @@
 
 
 
+
 // ++++++++++++++++++++++++++++++++DEBUGIN FUNCTIONS SESSION+++++++++++++++++++++++++++++++++++++
 
 Server::Server(int port, std::string password)
@@ -32,6 +33,8 @@ void Server::init_server()
     srv_addr.sin_family = AF_INET;
     srv_addr.sin_port = htons(this->srv_port);
     srv_addr.sin_addr.s_addr = INADDR_ANY;
+
+    this->srv_addr = srv_addr;
 
     if (bind(this->srv_socket, reinterpret_cast<struct sockaddr*>(&srv_addr), sizeof(srv_addr)) == -1)
         throw std::runtime_error("Error: could not bind socket, retrying...");
@@ -120,7 +123,7 @@ void    pp_ch(std::vector<Channel> &tmp)
     for (std::vector<Channel>::iterator o = tmp.begin(); o != tmp.end(); o++)
     {
         i++;
-        // std::cout << "Channel number : " << i << " " << *o;
+        std::cout << "Channel number : " << i << " " << *o;
     }
 }
 
@@ -130,7 +133,7 @@ void    pp_pp(std::map<int, Client> &tmp)
     for (std::map<int, Client>::iterator o = tmp.begin(); o != tmp.end(); o++)
     {
         i++;
-        // std::cout << "Client number : " << i << " " << o->second ;
+        std::cout << "Client number : " << i << " " << o->second ;
     }
 }
 
@@ -334,6 +337,57 @@ void Server::topic_cmd(int client_socket, std::string buffer)
     }
 }
 
+// void Server::list(int client_socket, std::string buffer) {
+//     // buffer.erase(0, buffer.find(" ") + 1);
+//     std::string ch = buffer.substr(0, buffer.find(" "));
+//     std::cout << "*** " << buffer << std::endl;
+//     for (std::vector<Channel>::iterator it = channels.begin(); it != channels.end(); ++it) {
+//         if (it->get_name() == ch) {
+//             std::string msg = "LIST " + it->get_name() + " ";
+//             std::string msg1 = it->list_cmd(msg);
+//             msg1 += "\r\n";
+//             send(client_socket, msg1.c_str(), msg1.length(), 0);
+//             return;
+//         }
+//     }
+//     send(client_socket, "ERR LIST\r\n", 10, 0);
+// }
+
+// void Server::list(int client_socket,std::string buffer)
+// {
+//     buffer.erase(0,buffer.find(" ")+1);
+//     std::string ch = buffer.substr(0,buffer.find(" "));
+//     for(std::vector<Channel>::iterator it = this->channels.begin(); it != this->channels.end(); ++it)
+//     {
+//         if(it->get_name() == ch)
+//         {
+//             std::string msg = "LIST " + it->get_name() + " " + it->get_admin().get_nickname() + " " + std::to_string(it->get_name().size()) + "\n";
+//             send(client_socket, msg.c_str(), msg.length(), 0);
+//             return;
+//         }
+//     }
+//     send(client_socket, "ERR LIST\r\n", 10, 0);
+// }
+
+void Server::kill_cmd(int client_socket, std::string buffer)
+{
+    std::string user = buffer.substr(0,buffer.find(" "));
+    buffer.erase(0,user.length()+1);
+    std::string reason = buffer.substr(0);
+    for(std::map<int,Client>::iterator it = this->clients.begin(); it != this->clients.end(); ++it)
+    {
+        if(it->second.get_nickname() == user)
+        {
+            send(it->first, ("KILL " + reason + "\n").c_str(), 16, 0);
+            close(it->first);
+            clients.erase(it);
+            send(client_socket, "KILL OK\n", 8, 0);
+            return;
+        }
+    }
+    send(client_socket, "ERR KILL\n", 9, 0);
+}
+
 void Server::handle_input(int client_socket)
 {   
     std::string buffer = this->client_request(client_socket);
@@ -341,14 +395,26 @@ void Server::handle_input(int client_socket)
     {
         return;
     }
-    std::cout << "|" << buffer << "|" << std::endl;
+    std::cout << "|" + buffer + "|" << std::endl;
     std::string command = buffer.substr(0, buffer.find(" "));
     buffer.erase(0, command.length() + 1);
-    if(command == "PART")
+    // if(command == "MODE")
+    // {
+    //     this->mode_cmd(client_socket, buffer);
+    // }
+    // if(command == "LIST")
+    // {
+    //     this->list(client_socket, buffer);
+    // }
+    if (command == "KILL")
+    {
+        this->kill_cmd(client_socket, buffer);
+    }
+    else if(command == "PART")
     {
         this->part_cmd(client_socket, buffer);
     }
-    if(command == "PASS")
+    else if(command == "PASS")
     {
         this->pass_cmd(client_socket, buffer);
     }
@@ -375,7 +441,6 @@ void Server::handle_input(int client_socket)
     else if(command == "JOIN")
     {
         this->join_cmd(client_socket, buffer);
-        pp_ch(channels);
     }
     else if(command == "MSG" || command == "PRIVMSG")
     {
@@ -476,6 +541,37 @@ std::map<int, Client> Server::get_clients() const
 std::vector<Channel> Server::get_channels() const
 {
     return (this->channels);
+}
+
+std::string Server::get_srv_ip() const
+{
+    struct ifaddrs *ifaddr, *ifa;
+    int family, s;
+    char host[NI_MAXHOST];
+    std::string ip;
+
+    if (getifaddrs(&ifaddr) == -1)
+    {
+        std::cerr << "Error: could not get server ip." << std::endl;
+        exit(EXIT_FAILURE);
+    }
+
+    for (ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next)
+    {
+        family = ifa->ifa_addr->sa_family;
+        if (family == AF_INET)
+        {
+            s = getnameinfo(ifa->ifa_addr, sizeof(struct sockaddr_in), host, NI_MAXHOST, NULL, 0, NI_NUMERICHOST);
+            if (s != 0)
+            {
+                std::cerr << "Error: could not get server ip." << std::endl;
+                exit(EXIT_FAILURE);
+            }
+            ip = host;
+        }
+    }
+    freeifaddrs(ifaddr);
+    return (ip);
 }
 
 

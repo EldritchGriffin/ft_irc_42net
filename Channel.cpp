@@ -9,6 +9,7 @@ Channel::Channel(std::string name, std::string topic)
 {
     this->name = name;
     this->topic = topic;
+    this->password = "";
 }
 
 Channel::~Channel()
@@ -33,6 +34,15 @@ void Channel::set_name(std::string name)
 void Channel::set_topic(std::string topic)
 {
     this->topic = topic;
+}
+
+std::string Channel::list_cmd(std::string msg)
+{
+    for (std::vector<Client>::iterator user_it = users.begin(); user_it != users.end(); user_it++) {
+        msg += " " + user_it->get_nickname();
+    }
+    std::cout << msg << std::endl;
+    return(msg);
 }
 
 void Channel::kick_user(std::string user)
@@ -70,6 +80,7 @@ Client Channel::get_admin() const
 void Channel::add_user(Client user)
 {
     this->users.push_back(user);
+    this->send_message(":" + user.get_nickname() + " JOIN " + this->name + "\r\n", user.get_socket());
 }
 
 void Channel::add_operator(Client user)
@@ -103,15 +114,15 @@ void Channel::remove_operator(Client user)
 
 void Channel::send_message(std::string message, int client_socket)
 {
-    // std::vector<Client>::iterator it1;
-    // for(std::vector<Client>::iterator it = this->users.begin(); it != this->users.end(); ++it)
-    // {
-    //     it1 = it;
-    //     if (it->get_socket() == client_socket)
-    //         break;
-    //     else if (++it1 == this->users.end())
-    //         return;
-    // }
+    std::vector<Client>::iterator it1;
+    for(std::vector<Client>::iterator it = this->users.begin(); it != this->users.end(); ++it)
+    {
+        it1 = it;
+        if (it->get_socket() == client_socket)
+            break;
+        else if (++it1 == this->users.end())
+            return;
+    }
 
     for (std::vector<Client>::iterator it = this->users.begin(); it != this->users.end(); ++it)
     {
@@ -119,17 +130,6 @@ void Channel::send_message(std::string message, int client_socket)
         {
             send(it->get_socket(), message.c_str(), message.length(), 0);
         }
-    }
-    for (std::vector<Client>::iterator it = this->operators.begin(); it != this->operators.end(); ++it)
-    {
-        if (it->get_socket() != client_socket)
-        {
-            send(it->get_socket(), message.c_str(), message.length(), 0);
-        }
-    }
-    if (this->admin.get_socket() != client_socket)
-    {
-        send(this->admin.get_socket(), message.c_str(), message.length(), 0);
     }
 }
 

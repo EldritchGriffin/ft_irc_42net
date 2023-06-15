@@ -35,6 +35,7 @@ class Channel{
         void add_user(Client user);
         void kick_user(std::string user);
         void invite_user(std::string user);
+        std::string list_cmd(std::string msg);
         void add_operator(Client user);
 
         void remove_user(Client user);
