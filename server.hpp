@@ -12,7 +12,9 @@
 #include <unistd.h>
 #include <poll.h>
 #include <stdlib.h>
-// #include "Tools.hpp"
+#include <ifaddrs.h>
+#include <sys/types.h>
+#include <netdb.h>
 
 //TODO create whatever classes we need to make the server work;
 
@@ -26,10 +28,12 @@ class Server
         //private members
         int srv_socket;
         int srv_port;
+        struct sockaddr_in srv_addr;
         std::string srv_password;
         std::vector<pollfd> pollfds;
         std::map<int ,Client> clients;
         std::vector<Channel> channels;
+
 
         //private methods
 
@@ -61,6 +65,7 @@ class Server
         int get_srv_socket() const;
         int get_srv_port() const;
         std::string get_srv_password() const;
+        std::string get_srv_ip() const;
         std::vector<pollfd> get_pollfds() const;
         std::map<int ,Client> get_clients() const;
         std::vector<Channel> get_channels() const;
@@ -70,7 +75,5 @@ class Server
         void set_srv_port(int srv_port);
         void set_pollfds(std::vector<pollfd> pollfds);
         void set_clients(std::map<int ,Client> clients);
-        void set_channels(std::vector<Channel> channels);
-        
-        
+        void set_channels(std::vector<Channel> channels); 
 };

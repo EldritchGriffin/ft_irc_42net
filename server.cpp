@@ -5,6 +5,7 @@
 
 
 
+
 // ++++++++++++++++++++++++++++++++DEBUGIN FUNCTIONS SESSION+++++++++++++++++++++++++++++++++++++
 
 Server::Server(int port, std::string password)
@@ -32,6 +33,8 @@ void Server::init_server()
     srv_addr.sin_family = AF_INET;
     srv_addr.sin_port = htons(this->srv_port);
     srv_addr.sin_addr.s_addr = INADDR_ANY;
+
+    this->srv_addr = srv_addr;
 
     if (bind(this->srv_socket, reinterpret_cast<struct sockaddr*>(&srv_addr), sizeof(srv_addr)) == -1)
         throw std::runtime_error("Error: could not bind socket, retrying...");
@@ -296,7 +299,6 @@ void Server::handle_input(int client_socket)
     else if(command == "JOIN")
     {
         this->join_cmd(client_socket, buffer);
-        pp_ch(channels);
     }
     else if(command == "MSG" || command == "PRIVMSG")
     {
@@ -397,6 +399,37 @@ std::map<int, Client> Server::get_clients() const
 std::vector<Channel> Server::get_channels() const
 {
     return (this->channels);
+}
+
+std::string Server::get_srv_ip() const
+{
+    struct ifaddrs *ifaddr, *ifa;
+    int family, s;
+    char host[NI_MAXHOST];
+    std::string ip;
+
+    if (getifaddrs(&ifaddr) == -1)
+    {
+        std::cerr << "Error: could not get server ip." << std::endl;
+        exit(EXIT_FAILURE);
+    }
+
+    for (ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next)
+    {
+        family = ifa->ifa_addr->sa_family;
+        if (family == AF_INET)
+        {
+            s = getnameinfo(ifa->ifa_addr, sizeof(struct sockaddr_in), host, NI_MAXHOST, NULL, 0, NI_NUMERICHOST);
+            if (s != 0)
+            {
+                std::cerr << "Error: could not get server ip." << std::endl;
+                exit(EXIT_FAILURE);
+            }
+            ip = host;
+        }
+    }
+    freeifaddrs(ifaddr);
+    return (ip);
 }
 
 
