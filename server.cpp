@@ -236,6 +236,25 @@ void Server::part_cmd(int client_socket,std::string buffer){
     }
 }
 
+void Server::kill_cmd(int client_socket, std::string buffer)
+{
+    std::string user = buffer.substr(0,buffer.find(" "));
+    buffer.erase(0,user.length()+1);
+    std::string reason = buffer.substr(0);
+    for(std::map<int,Client>::iterator it = this->clients.begin(); it != this->clients.end(); ++it)
+    {
+        if(it->second.get_nickname() == user)
+        {
+            send(it->first, ("KILL " + reason + "\n").c_str(), 16, 0);
+            close(it->first);
+            clients.erase(it);
+            send(client_socket, "KILL OK\n", 8, 0);
+            return;
+        }
+    }
+    send(client_socket, "ERR KILL\n", 9, 0);
+}
+
 void Server::handle_input(int client_socket)
 {   
     std::string buffer = this->client_request(client_socket);
@@ -246,11 +265,15 @@ void Server::handle_input(int client_socket)
     std::cout << "|" + buffer + "|" << std::endl;
     std::string command = buffer.substr(0, buffer.find(" "));
     buffer.erase(0, command.length() + 1);
-    if(command == "PART")
+    if (command == "KILL")
+    {
+        this->kill_cmd(client_socket, buffer);
+    }
+    else if(command == "PART")
     {
         this->part_cmd(client_socket, buffer);
     }
-    if(command == "PASS")
+    else if(command == "PASS")
     {
         this->pass_cmd(client_socket, buffer);
     }
