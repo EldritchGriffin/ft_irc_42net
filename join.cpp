@@ -2,6 +2,7 @@
 #include "Channel.hpp"
 #include "Client.hpp"
 #include "Tools.hpp"
+#include "numeric_replies.hpp"
 
 void    create_channel(int client_socket, std::string channel_name, std::string key, Server &server)
 {
@@ -31,7 +32,7 @@ void join_channel(int client_socket, std::string channel_name, std::string key, 
             if (it->get_password() == key)
             {
                 it->add_user(client_caller);
-                std::string message = ":" + server.get_srv_ip() + " 332 " + client_caller.get_nickname() + " " + channel_name + " :" + it->get_topic() + "\r\n";
+                std::string message = ":" + server.get_srv_ip() + " " + RPL_TOPIC + " " + client_caller.get_nickname() + " " + channel_name + " :" + it->get_topic() + "\r\n";
                 send(client_socket, message.c_str(), message.length(), 0);
                 std::cout << client_caller.get_nickname() << " Channel JOINED: " << channel_name << std::endl;
                 return;
