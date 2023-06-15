@@ -181,15 +181,17 @@ void Server::kick_cmd(int client_socket, std::string buffer)
     {
         if(it->get_name() == ch)
         {
-            if(it->get_admin().get_nickname() == this->clients[client_socket].get_nickname())
-            {
+            // if(it->get_admin().get_nickname() == this->clients[client_socket].get_nickname())
+            // {
                 it->kick_user(user);
+                std::string msg = ":" + this->clients[client_socket].get_nickname() + " KICK " + ch + " " + user + " :" + reason + "\r\n";
+                it->send_message(msg, client_socket);
                 return;
-            }
-            else
-            {
-                return;
-            }
+            // }
+            // else
+            // {
+            //     return;
+            // }
         }
     }
 }

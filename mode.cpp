@@ -11,7 +11,5 @@ void Server::mode_cmd(int client_socket, std::string buffer)
     buffer.erase(0, mode.length() + 1);
     std::string user = buffer.substr(0, buffer.find(" "));
     buffer.erase(0, user.length() + 1);
-    std::string key = buffer.substr(0, buffer.length());
-    buffer.erase(0, key.length() + 1);
-    std::vector<Channel> channels = server.get_channels();
+    //TODO we need to know how many paramet we need for this mode:by absela
 }
