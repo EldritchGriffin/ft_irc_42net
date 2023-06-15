@@ -1,5 +1,6 @@
 #include "server.hpp"
 #include "Client.hpp"
+#include "numeric_replies.hpp"
 
 void Server::auth_client(int client_socket)
 {
@@ -8,6 +9,9 @@ void Server::auth_client(int client_socket)
     && this->clients[client_socket].get_user_state() == USER)
     {
         this->clients[client_socket].set_grade(AUTHENTICATED);
+        std::string msg = ":" + this->get_srv_ip() + " " + RPL_WELCOME + " " 
+        + this->clients[client_socket].get_nickname() + " :" + WLCM_MSG + "\r\n";
+        send(client_socket, msg.c_str(), msg.length(), 0);
         return;
     }
     return;
