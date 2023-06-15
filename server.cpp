@@ -2,6 +2,7 @@
 #include "Channel.hpp"
 #include "Client.hpp"
 #include "Tools.hpp"
+#include "numeric_replies.hpp"
 
 
 
@@ -262,33 +263,32 @@ int Channel::search_client_in_channel(std::string client_name)
 {
     if (admin.get_nickname() == client_name)
         return (1);
-    for(std::vector<Client>::iterator ch = users.begin(); ch != users.end(); ch++)
-    {
-        if (ch->get_nickname() == client_name)
-            return (3);
-    }
     for(std::vector<Client>::iterator ch = operators.begin(); ch != operators.end(); ch++)
     {
         if (ch->get_nickname() == client_name)
             return (2);
     }
+    for(std::vector<Client>::iterator ch = users.begin(); ch != users.end(); ch++)
+    {
+        if (ch->get_nickname() == client_name)
+            return (3);
+    }
     return (0);
 }
 
 void    Server::get_channel_topic(std::string channel_name, int client_socket)
-{
+{//:server_ip 332 dan #v4 :Coolest topic
     for(std::vector<Channel>::iterator ch = channels.begin(); ch != channels.end(); ch++)
     {
             int client_existens = ch->search_client_in_channel(client_socket);
                 std::cout << client_existens << "ddd\n";
         if (ch->get_name() == channel_name) //TOPIC #test 
-        {//:<user> TOPIC <channel> :<topic>\r\n
+        {
             if (client_existens)
-            {//:dan!d@Clk-830D7DDC TOPIC #v3 :
-                // std::cout << "ddd\n";
-                // std::string msg = " TOPIC #" + ch->get_topic() + "\r\n";
+            {
+                std::cout << "sending topic to limechat" << std::endl;
                 std::string message_sender = clients[client_socket].get_nickname();
-                std::string msg = ":" + message_sender + "!" + message_sender[0] + "@localhost TOPIC " + channel_name + "\r\n";
+                std::string msg = ":"+ this->get_srv_ip() +" " + RPL_TOPIC + " " + message_sender + " #" + channel_name + " :" + ch->get_topic() + "\r\n";
                 send(client_socket, (msg).c_str(), msg.length(), 0);
             }
             return;
@@ -300,7 +300,7 @@ void    Server::get_channel_topic(std::string channel_name, int client_socket)
 }
 
 void    Server::set_channel_topic(int client_socket, std::string channel_name, std::string buffer)
-{
+{// to do , unset topic
     for(std::vector<Channel>::iterator ch = channels.begin(); ch != channels.end(); ch++)
     {
         std::cout << "channel name in the queue :" + ch->get_name() << std::endl;
@@ -309,6 +309,7 @@ void    Server::set_channel_topic(int client_socket, std::string channel_name, s
             int client_existens = ch->search_client_in_channel(client_socket);
             if (client_existens > 0 && client_existens < 3)
             {//:dan!d@Clk-830D7DDC TOPIC #v3 :This is a cool channel!!
+                std::cout << "setting the topic from the lamechat" << std::endl;
                 ch->set_topic(buffer);
                 std::string user_nam = clients[client_socket].get_nickname();
                 std::string msg = ":" + user_nam+"!"+user_nam[0]+"@localhost TOPIC " + channel_name + " :" +buffer + "\r\n";
