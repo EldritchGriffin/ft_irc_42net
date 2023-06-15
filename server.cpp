@@ -236,6 +236,104 @@ void Server::part_cmd(int client_socket,std::string buffer){
     }
 }
 
+int Channel::search_client_in_channel(int   client_socket)
+{
+    if (admin.get_socket() == client_socket)
+        return (1);
+    for(std::vector<Client>::iterator ch = users.begin(); ch != users.end(); ch++)
+    {
+        if (ch->get_socket() == client_socket)
+            return (3);
+    }
+    for(std::vector<Client>::iterator ch = operators.begin(); ch != operators.end(); ch++)
+    {
+        if (ch->get_socket() == client_socket)
+            return (2);
+    }
+    return (0);
+}
+
+int Channel::search_client_in_channel(std::string client_name)
+{
+    if (admin.get_nickname() == client_name)
+        return (1);
+    for(std::vector<Client>::iterator ch = users.begin(); ch != users.end(); ch++)
+    {
+        if (ch->get_nickname() == client_name)
+            return (3);
+    }
+    for(std::vector<Client>::iterator ch = operators.begin(); ch != operators.end(); ch++)
+    {
+        if (ch->get_nickname() == client_name)
+            return (2);
+    }
+    return (0);
+}
+
+void    Server::get_channel_topic(std::string channel_name, int client_socket)
+{
+    for(std::vector<Channel>::iterator ch = channels.begin(); ch != channels.end(); ch++)
+    {
+            int client_existens = ch->search_client_in_channel(client_socket);
+                std::cout << client_existens << "ddd\n";
+        if (ch->get_name() == channel_name) //TOPIC #test 
+        {//:<user> TOPIC <channel> :<topic>\r\n
+            if (client_existens)
+            {//:dan!d@Clk-830D7DDC TOPIC #v3 :
+                // std::cout << "ddd\n";
+                // std::string msg = " TOPIC #" + ch->get_topic() + "\r\n";
+                std::string message_sender = clients[client_socket].get_nickname();
+                std::string msg = ":" + message_sender + "!" + message_sender[0] + "@localhost TOPIC " + channel_name + "\r\n";
+                send(client_socket, (msg).c_str(), msg.length(), 0);
+            }
+            return;
+        }
+    }
+    send(client_socket, "no channel\r\n", 12, 0);
+
+    //error channel not found
+}
+
+void    Server::set_channel_topic(int client_socket, std::string channel_name, std::string buffer)
+{
+    for(std::vector<Channel>::iterator ch = channels.begin(); ch != channels.end(); ch++)
+    {
+        std::cout << "channel name in the queue :" + ch->get_name() << std::endl;
+        if (ch->get_name() == channel_name)
+        {
+            int client_existens = ch->search_client_in_channel(client_socket);
+            if (client_existens > 0 && client_existens < 3)
+            {//:dan!d@Clk-830D7DDC TOPIC #v3 :This is a cool channel!!
+                ch->set_topic(buffer);
+                std::string user_nam = clients[client_socket].get_nickname();
+                std::string msg = ":" + user_nam+"!"+user_nam[0]+"@localhost TOPIC " + channel_name + " :" +buffer + "\r\n";
+                std::cout << msg << std::endl;
+                send(client_socket, msg.c_str(), msg.length(), 0);
+            }
+            return ;
+        }
+    }
+    //error channel not found
+}
+
+void Server::topic_cmd(int client_socket, std::string buffer)
+{// if givven the 3rd arguments , the topic changes and broadcast it to the users , if there was no 3rd argument the corrent topic is returned
+    std::cout << "command is :" + buffer << std::endl;
+    std::string channel_name = buffer.substr(0, buffer.find(' '));
+    buffer.erase(0, buffer.find(' '));
+    std::cout <<  "channel name is :" + channel_name + " command is :" + buffer << std::endl;
+    if (buffer.empty())
+    {//TOPIC #test 
+        std::cout << "empty" << std::endl;
+        get_channel_topic(channel_name, client_socket);
+    }
+    else
+    {
+        std::cout << "not empty" << std::endl;
+        set_channel_topic(client_socket, channel_name, buffer);
+    }
+}
+
 void Server::handle_input(int client_socket)
 {   
     std::string buffer = this->client_request(client_socket);
@@ -261,6 +359,10 @@ void Server::handle_input(int client_socket)
     else if(command == "NICK")
     {
         this->nick_cmd(client_socket, buffer);
+    }
+    else if(command == "TOPIC")
+    {
+        this->topic_cmd(client_socket, buffer);
     }
     else if(command == "USER")
     {

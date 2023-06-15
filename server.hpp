@@ -50,6 +50,8 @@ class Server
         void accept_client();
         std::string client_request(int client_socket);
         void handle_input(int client_socket);
+        void    get_channel_topic(std::string channel_name, int client_socket);
+        void    set_channel_topic(int client_socket, std::string channel_name, std::string buffer);
     public:
 
         Server(int port, std::string password);
@@ -70,6 +72,10 @@ class Server
         void set_pollfds(std::vector<pollfd> pollfds);
         void set_clients(std::map<int ,Client> clients);
         void set_channels(std::vector<Channel> channels);
+        void topic_cmd(int client_socket, std::string buffer);
+
+
+
         
         
 };

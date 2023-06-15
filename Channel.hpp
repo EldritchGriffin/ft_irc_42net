@@ -41,6 +41,12 @@ class Channel{
         void remove_operator(Client user);
 
         void send_message(std::string message,int client_socket);
+
+
+        int search_client_in_channel(int   client_socket);
+        int search_client_in_channel(std::string client_name);
+
+
 };
 
 
