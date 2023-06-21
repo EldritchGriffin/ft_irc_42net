@@ -182,17 +182,13 @@ void Server::kick_cmd(int client_socket, std::string buffer)
     {
         if(it->get_name() == ch)
         {
-            // if(it->get_admin().get_nickname() == this->clients[client_socket].get_nickname())
-            // {
+            if(it->get_admin().get_nickname() == this->clients[client_socket].get_nickname())
+            {
                 it->kick_user(user);
-                std::string msg = ":" + this->clients[client_socket].get_nickname() + " KICK " + ch + " " + user + " :" + reason + "\r\n";
+                std::string msg = ":" + this->clients[client_socket].get_nickname() + " " + RPL_CHANINFO_KICKS + " KICK " + ch + " " + user + " :" + reason + "\r\n";
                 it->send_message(msg, client_socket);
                 return;
-            // }
-            // else
-            // {
-            //     return;
-            // }
+            }
         }
     }
 }
@@ -398,16 +394,13 @@ void Server::handle_input(int client_socket)
     {
         return;
     }
-    std::cout << "|" + buffer + "|" << std::endl;
     std::string command = buffer.substr(0, buffer.find(" "));
+    // std::cout << "|" + command + "|" << std::endl;
     buffer.erase(0, command.length() + 1);
+    std::cout << "|" + command + "|" << std::endl;
     // if(command == "MODE")
     // {
     //     this->mode_cmd(client_socket, buffer);
-    // }
-    // if(command == "LIST")
-    // {
-    //     this->list(client_socket, buffer);
     // }
     if (command == "KILL")
     {
@@ -451,6 +444,8 @@ void Server::handle_input(int client_socket)
     }
     else
     {
+        std::string msg = std::string(ERR_UNKNOWNCOMMAND) +command+" :" + "Unknown command\r\n";
+        send(client_socket, msg.c_str(), msg.length(), 0);
     }
 }
 
