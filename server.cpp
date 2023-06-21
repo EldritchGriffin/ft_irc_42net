@@ -141,7 +141,12 @@ void    pp_pp(std::map<int, Client> &tmp)
 void Server::msg(int client_socket, std::string buffer)
 {
     Client client_caller = clients[client_socket];
-    std::cout <<"LIMECHAT SENT:" << buffer << "|" << std::endl;
+    if(client_caller.get_grade() != AUTHENTICATED)
+    {
+        std::string msg = ":" + this->get_srv_ip() + " 451 :You have not registered\r\n";
+        send(client_socket, msg.c_str(), msg.length(), 0);
+        return;
+    }
     std::string channel_name = buffer.substr(0, buffer.find(" "));
     buffer.erase(0, channel_name.length() + 1);
     if (buffer[0] == ':')
@@ -149,16 +154,17 @@ void Server::msg(int client_socket, std::string buffer)
     std::vector<std::string> target_names = split_multiple_targets(channel_name);
     for (unsigned int i = 0; i < target_names.size(); i++)
     {
-        pp_ch(channels);
         channel_name = target_names[i];
         for(std::vector<Channel>::iterator it = this->channels.begin(); it != this->channels.end(); ++it)
         {
             if(it->get_name() == channel_name)
             {
-                it->send_message(client_caller.get_nickname() + " :" + buffer + "\n", client_socket);
+                std::string msg = ":" + client_caller.get_nickname() + " PRIVMSG " + channel_name + " :" + buffer + "\r\n";
+                std::cout << "Num users : " << it->get_users().size() << std::endl;
+                it->send_message(msg, client_socket);
+                return;
             }
         }
-        pp_pp(clients);
         for(std::map<int, Client>::iterator it = this->clients.begin(); it != this->clients.end(); ++it)
         {
             if(it->second.get_nickname() == channel_name)
@@ -536,12 +542,12 @@ std::vector<struct pollfd> Server::get_pollfds() const
     return (this->pollfds);
 }
 
-std::map<int, Client> Server::get_clients() const
+std::map<int, Client> &Server::get_clients()
 {
     return (this->clients);
 }
 
-std::vector<Channel> Server::get_channels() const
+std::vector<Channel> &Server::get_channels()
 {
     return (this->channels);
 }

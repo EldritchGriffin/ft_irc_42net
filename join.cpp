@@ -6,8 +6,8 @@
 
 void    create_channel(int client_socket, std::string channel_name, std::string key, Server &server)
 {
-    std::map<int, Client> clients = server.get_clients();
-    std::vector<Channel> channels = server.get_channels();
+    std::map<int, Client> &clients = server.get_clients();
+    std::vector<Channel> &channels = server.get_channels();
 
     Client client_caller = clients[client_socket];
     Channel new_channel(channel_name, "this is a topic");
@@ -15,13 +15,13 @@ void    create_channel(int client_socket, std::string channel_name, std::string 
     new_channel.set_password(key);
     new_channel.add_user(client_caller);
     channels.push_back(new_channel);
-    server.set_channels(channels);
+    // server.set_channels(channels);
 }
 
 void join_channel(int client_socket, std::string channel_name, std::string key, Server &server)
 {
-    std::map<int, Client> clients = server.get_clients();
-    std::vector<Channel> channels = server.get_channels();
+    std::map<int, Client> &clients = server.get_clients();
+    std::vector<Channel> &channels = server.get_channels();
 
 
     Client client_caller = clients[client_socket];
@@ -31,13 +31,14 @@ void join_channel(int client_socket, std::string channel_name, std::string key, 
         {
             if (it->get_password() == key)
             {
-                it->add_user(client_caller);
-                std::string message = ":" + server.get_srv_ip() + " " + RPL_TOPIC + " " + client_caller.get_nickname() + " " + channel_name + " :" + it->get_topic() + "\r\n";
+                std::vector<Client> &users = it->get_users();
+                users.push_back(client_caller);
+                std::string message = ":" + server.get_srv_ip() + " " + RPL_TOPIC + " " 
+                + client_caller.get_nickname() + " " + channel_name + " :" + it->get_topic() + "\r\n";
                 send(client_socket, message.c_str(), message.length(), 0);
                 std::cout << client_caller.get_nickname() << " Channel JOINED: " << channel_name << std::endl;
                 return;
             }
-            return ;
         }
     }
     create_channel(client_socket, channel_name, key, server);
@@ -50,7 +51,6 @@ void Server::join_cmd(int client_socket, std::string buffer)
 
 
     std::string channel_name = buffer.substr(0, buffer.find(" "));
-    std::cout << "channel_name: " << channel_name << std::endl;
     buffer.erase(0, channel_name.length() + 1);
     std::string key = buffer.substr(0, buffer.length());
     buffer.erase(0, key.length() + 1);
@@ -64,4 +64,5 @@ void Server::join_cmd(int client_socket, std::string buffer)
             key_targets.push_back("");
         join_channel(client_socket, channel_targets[i], key_targets[i], *this);
     }
-}
+        print_vector(this->channels.at(this->channels.size() - 1).get_users());
+} 

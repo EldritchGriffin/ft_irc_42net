@@ -71,8 +71,8 @@ class Server
         std::string get_srv_password() const;
         std::string get_srv_ip() const;
         std::vector<pollfd> get_pollfds() const;
-        std::map<int ,Client> get_clients() const;
-        std::vector<Channel> get_channels() const;
+        std::map<int ,Client> &get_clients();
+        std::vector<Channel> &get_channels();
 
         //setters
         void set_srv_socket(int srv_socket);

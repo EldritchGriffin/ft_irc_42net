@@ -47,3 +47,11 @@ std::vector<std::string> split_multiple_targets(std::string channel_name)
         target_names.push_back(channel_name);
     return (target_names);
 }
+
+void print_vector(std::vector<Client> v)
+{
+    for (std::vector<Client>::iterator it = v.begin(); it != v.end(); ++it)
+    {
+        std::cout << "----------- " << it->get_nickname() << std::endl;
+    }
+}
