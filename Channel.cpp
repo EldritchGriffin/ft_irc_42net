@@ -114,15 +114,15 @@ void Channel::remove_operator(Client user)
 
 void Channel::send_message(std::string message, int client_socket)
 {
-    // std::vector<Client>::iterator it1;
-    // for(std::vector<Client>::iterator it = this->users.begin(); it != this->users.end(); ++it)
-    // {
-    //     it1 = it;
-    //     if (it->get_socket() == client_socket)
-    //         break;
-    //     else if (++it1 == this->users.end())
-    //         return;
-    // }
+    std::vector<Client>::iterator it1;
+    for(std::vector<Client>::iterator it = this->users.begin(); it != this->users.end(); ++it)
+    {
+        it1 = it;
+        if (it->get_socket() == client_socket)
+            break;
+        else if (++it1 == this->users.end())
+            return;
+    }
 
     for (std::vector<Client>::iterator it = this->users.begin(); it != this->users.end(); ++it)
     {

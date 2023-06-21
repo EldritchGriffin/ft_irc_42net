@@ -359,6 +359,8 @@ void Server::handle_input(int client_socket)
     }
     else
     {
+        std::string msg = "421 " + command + " :Unknown command\r\n";
+        send(client_socket, msg.c_str(), msg.length(), 0);
     }
 }
 
