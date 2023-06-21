@@ -26,10 +26,12 @@ class Channel{
         void set_topic(std::string topic);
         void set_admin(Client admin);
         void set_password(std::string password);
+        void set_users(std::vector<Client> users);
 
         std::string get_name() const;
         std::string get_topic() const;
         std::string get_password() const;
+        std::vector<Client> &get_users();
         Client get_admin() const;
 
         void add_user(Client user);

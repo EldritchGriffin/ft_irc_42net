@@ -132,3 +132,13 @@ void Channel::send_message(std::string message, int client_socket)
         }
     }
 }
+
+std::vector<Client> &Channel::get_users()
+{
+    return this->users;
+}
+
+void Channel::set_users(std::vector<Client> users)
+{
+    this->users = users;
+}

@@ -141,7 +141,12 @@ void    pp_pp(std::map<int, Client> &tmp)
 void Server::msg(int client_socket, std::string buffer)
 {
     Client client_caller = clients[client_socket];
-    std::cout <<"LIMECHAT SENT:" << buffer << "|" << std::endl;
+    if(client_caller.get_grade() != AUTHENTICATED)
+    {
+        std::string msg = ":" + this->get_srv_ip() + " 451 :You have not registered\r\n";
+        send(client_socket, msg.c_str(), msg.length(), 0);
+        return;
+    }
     std::string channel_name = buffer.substr(0, buffer.find(" "));
     buffer.erase(0, channel_name.length() + 1);
     if (buffer[0] == ':')
@@ -149,16 +154,17 @@ void Server::msg(int client_socket, std::string buffer)
     std::vector<std::string> target_names = split_multiple_targets(channel_name);
     for (unsigned int i = 0; i < target_names.size(); i++)
     {
-        pp_ch(channels);
         channel_name = target_names[i];
         for(std::vector<Channel>::iterator it = this->channels.begin(); it != this->channels.end(); ++it)
         {
             if(it->get_name() == channel_name)
             {
-                it->send_message(client_caller.get_nickname() + " :" + buffer + "\n", client_socket);
+                std::string msg = ":" + client_caller.get_nickname() + " PRIVMSG " + channel_name + " :" + buffer + "\r\n";
+                std::cout << "Num users : " << it->get_users().size() << std::endl;
+                it->send_message(msg, client_socket);
+                return;
             }
         }
-        pp_pp(clients);
         for(std::map<int, Client>::iterator it = this->clients.begin(); it != this->clients.end(); ++it)
         {
             if(it->second.get_nickname() == channel_name)
@@ -235,104 +241,6 @@ void Server::part_cmd(int client_socket,std::string buffer){
             it->remove_user(this->clients[client_socket]);
             return;
         }
-    }
-}
-
-int Channel::search_client_in_channel(int   client_socket)
-{
-    if (admin.get_socket() == client_socket)
-        return (1);
-    for(std::vector<Client>::iterator ch = users.begin(); ch != users.end(); ch++)
-    {
-        if (ch->get_socket() == client_socket)
-            return (3);
-    }
-    for(std::vector<Client>::iterator ch = operators.begin(); ch != operators.end(); ch++)
-    {
-        if (ch->get_socket() == client_socket)
-            return (2);
-    }
-    return (0);
-}
-
-int Channel::search_client_in_channel(std::string client_name)
-{
-    if (admin.get_nickname() == client_name)
-        return (1);
-    for(std::vector<Client>::iterator ch = operators.begin(); ch != operators.end(); ch++)
-    {
-        if (ch->get_nickname() == client_name)
-            return (2);
-    }
-    for(std::vector<Client>::iterator ch = users.begin(); ch != users.end(); ch++)
-    {
-        if (ch->get_nickname() == client_name)
-            return (3);
-    }
-    return (0);
-}
-
-void    Server::get_channel_topic(std::string channel_name, int client_socket)
-{//:server_ip 332 dan #v4 :Coolest topic
-    for(std::vector<Channel>::iterator ch = channels.begin(); ch != channels.end(); ch++)
-    {
-            int client_existens = ch->search_client_in_channel(client_socket);
-                std::cout << client_existens << "ddd\n";
-        if (ch->get_name() == channel_name) //TOPIC #test 
-        {
-            if (client_existens)
-            {
-                std::cout << "sending topic to limechat" << std::endl;
-                std::string message_sender = clients[client_socket].get_nickname();
-                std::string msg = ":"+ this->get_srv_ip() +" " + RPL_TOPIC + " " + message_sender + " #" + channel_name + " :" + ch->get_topic() + "\r\n";
-                send(client_socket, (msg).c_str(), msg.length(), 0);
-            }
-            return;
-        }
-    }
-    send(client_socket, "no channel\r\n", 12, 0);
-
-    //error channel not found
-}
-
-void    Server::set_channel_topic(int client_socket, std::string channel_name, std::string buffer)
-{// to do , unset topic
-    for(std::vector<Channel>::iterator ch = channels.begin(); ch != channels.end(); ch++)
-    {
-        std::cout << "channel name in the queue :" + ch->get_name() << std::endl;
-        if (ch->get_name() == channel_name)
-        {
-            int client_existens = ch->search_client_in_channel(client_socket);
-            if (client_existens > 0 && client_existens < 3)
-            {//:dan!d@Clk-830D7DDC TOPIC #v3 :This is a cool channel!!
-                std::cout << "setting the topic from the lamechat" << std::endl;
-                ch->set_topic(buffer);
-                std::string user_nam = clients[client_socket].get_nickname();
-                std::string msg = ":" + user_nam+"!"+user_nam[0]+"@localhost TOPIC " + channel_name + " :" +buffer + "\r\n";
-                std::cout << msg << std::endl;
-                send(client_socket, msg.c_str(), msg.length(), 0);
-            }
-            return ;
-        }
-    }
-    //error channel not found
-}
-
-void Server::topic_cmd(int client_socket, std::string buffer)
-{// if givven the 3rd arguments , the topic changes and broadcast it to the users , if there was no 3rd argument the corrent topic is returned
-    std::cout << "command is :" + buffer << std::endl;
-    std::string channel_name = buffer.substr(0, buffer.find(' '));
-    buffer.erase(0, buffer.find(' '));
-    std::cout <<  "channel name is :" + channel_name + " command is :" + buffer << std::endl;
-    if (buffer.empty())
-    {//TOPIC #test 
-        std::cout << "empty" << std::endl;
-        get_channel_topic(channel_name, client_socket);
-    }
-    else
-    {
-        std::cout << "not empty" << std::endl;
-        set_channel_topic(client_socket, channel_name, buffer);
     }
 }
 
@@ -444,7 +352,7 @@ void Server::handle_input(int client_socket)
     }
     else
     {
-        std::string msg = std::string(ERR_UNKNOWNCOMMAND) +command+" :" + "Unknown command\r\n";
+        std::string msg = "421 " + command + " :Unknown command\r\n";
         send(client_socket, msg.c_str(), msg.length(), 0);
     }
 }
@@ -531,12 +439,12 @@ std::vector<struct pollfd> Server::get_pollfds() const
     return (this->pollfds);
 }
 
-std::map<int, Client> Server::get_clients() const
+std::map<int, Client> &Server::get_clients()
 {
     return (this->clients);
 }
 
-std::vector<Channel> Server::get_channels() const
+std::vector<Channel> &Server::get_channels()
 {
     return (this->channels);
 }

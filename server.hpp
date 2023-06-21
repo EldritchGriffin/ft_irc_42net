@@ -71,8 +71,8 @@ class Server
         std::string get_srv_password() const;
         std::string get_srv_ip() const;
         std::vector<pollfd> get_pollfds() const;
-        std::map<int ,Client> get_clients() const;
-        std::vector<Channel> get_channels() const;
+        std::map<int ,Client> &get_clients();
+        std::vector<Channel> &get_channels();
 
         //setters
         void set_srv_socket(int srv_socket);
@@ -83,7 +83,12 @@ class Server
         void topic_cmd(int client_socket, std::string buffer);
 
 
-
-        
-        
+        std::string get_client_nick_by_socket(int client_socket);
+        void call_ERR_NEEDMOREPARAMS(int client_socket);
+        int check_if_on_channel(int client_socket, std::string channel_name);
+        void    call_ERR_NOTONCHANNEL(int client_socket);
+        void    call_ERR_CHANOPRIVSNEEDED(int client_socket, std::string channel_name);
 };
+
+void    pp_ch(std::vector<Channel> &tmp);
+void    pp_pp(std::map<int, Client> &tmp);
