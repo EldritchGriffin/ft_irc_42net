@@ -65,7 +65,7 @@ void    Server::call_ERR_CHANOPRIVSNEEDED(int client_socket, std::string channel
 }
 
 void    Server::set_channel_topic(int client_socket, std::string channel_name, std::string buffer)
-{// to do , unset topic
+{// TODO , unset topic
     for(std::vector<Channel>::iterator ch = channels.begin(); ch != channels.end(); ch++)
     {
         std::cout << "channel name in the queue :" + ch->get_name() << std::endl;
