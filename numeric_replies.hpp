@@ -363,5 +363,8 @@
 #define ERR_NOTFORHALFOPS "557"
 #define ERR_NEEDMOREPARAMS_ "558"
 #define ERR_ALREADYREGISTERED "559"
+#define ERR_NOPERMFORCMD "560"
+#define ERR_PASSWDMISMATCH_ "561"
+#define ERR_YOUREBANNEDCREEP_ "562"
 
 #define WLCM_MSG "𝕎𝕖𝕝𝕔𝕠𝕞𝕖 𝕥𝕠 𝕥𝕙𝕖 𝕀ℝℂ 𝕤𝕖𝕣𝕧𝕖𝕣. 𝕄𝕒𝕕𝕖 𝕓𝕪: 𝕒𝕖𝕝𝕪𝕒𝕜𝕠𝕦, 𝕒𝕓𝕖𝕝𝕒𝕙𝕔𝕖. 𝕒𝕓𝕤𝕖𝕝𝕒."

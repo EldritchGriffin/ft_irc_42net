@@ -1,3 +1,5 @@
+#include <sstream>
+#include <numeric>
 #include "server.hpp"
 #include "Channel.hpp"
 #include "Client.hpp"
@@ -141,12 +143,12 @@ void    pp_pp(std::map<int, Client> &tmp)
 void Server::msg(int client_socket, std::string buffer)
 {
     Client client_caller = clients[client_socket];
-    if(client_caller.get_grade() != AUTHENTICATED)
-    {
-        std::string msg = ":" + this->get_srv_ip() + " 451 :You have not registered\r\n";
-        send(client_socket, msg.c_str(), msg.length(), 0);
-        return;
-    }
+    // if(client_caller.get_grade() != AUTHENTICATED)
+    // {
+    //     std::string msg = ":" + this->get_srv_ip() + " 451 :You have not registered\r\n";
+    //     send(client_socket, msg.c_str(), msg.length(), 0);
+    //     return;
+    // }
     std::string channel_name = buffer.substr(0, buffer.find(" "));
     buffer.erase(0, channel_name.length() + 1);
     if (buffer[0] == ':')
@@ -177,26 +179,49 @@ void Server::msg(int client_socket, std::string buffer)
     return;
 }
 
-void Server::kick_cmd(int client_socket, std::string buffer)
+void Server::kick_cmd(int client_socket, std::vector<std::string> args)
 {
-    std::string ch = buffer.substr(0,buffer.find(" "));
-    buffer.erase(0,ch.length()+1);
-    std::string user = buffer.substr(0,buffer.find(" "));
-    buffer.erase(0,user.length()+1);
-    std::string reason = buffer.substr(0);
+    Client client_caller = clients[client_socket];
+    // if(client_caller.get_grade() != AUTHENTICATED)
+    // {
+    //     std::string msg = ":" + this->get_srv_ip() + " 451 :You have not registered\r\n";
+    //     send(client_socket, msg.c_str(), msg.length(), 0);
+    //     return;
+    // }
+    if(args.size() < 3)
+    {
+        std::string msg = ":" + this->get_srv_ip() + " 461 :Not enough parameters\r\n";
+        send(client_socket, msg.c_str(), msg.length(), 0);
+        return;
+    }
+    std::string channel_name = args[0];
+    std::string target_name = args[1];
     for(std::vector<Channel>::iterator it = this->channels.begin(); it != this->channels.end(); ++it)
     {
-        if(it->get_name() == ch)
+        if(it->get_name() == channel_name)
         {
-            if(it->get_admin().get_nickname() == this->clients[client_socket].get_nickname())
+            if(it->get_admin().get_nickname() == client_caller.get_nickname())
             {
-                it->kick_user(user);
-                std::string msg = ":" + this->clients[client_socket].get_nickname() + " " + RPL_CHANINFO_KICKS + " KICK " + ch + " " + user + " :" + reason + "\r\n";
-                it->send_message(msg, client_socket);
+                for(std::vector<Client>::iterator it2 = it->get_users().begin(); it2 != it->get_users().end(); ++it2)
+                {
+                    if(it2->get_nickname() == target_name)
+                    {
+                        std::string msg = ":" + this->get_srv_ip() + " KICK " + channel_name + " " + target_name + " :Kicked by " + client_caller.get_nickname() + "\r\n";
+                        send(it2->get_socket(), msg.c_str(), msg.length(), 0);
+                        return;
+                    }
+                }
+                std::string msg = ":" + this->get_srv_ip() + " 441 " + client_caller.get_nickname() + " " + target_name + " :They aren't on that channel\r\n";
+                send(client_socket, msg.c_str(), msg.length(), 0);
                 return;
             }
+            std::string msg = ":" + this->get_srv_ip() + " 482 " + client_caller.get_nickname() + " :You're not channel operator\r\n";
+            send(client_socket, msg.c_str(), msg.length(), 0);
+            return;
         }
     }
+    std::string msg = ":" + this->get_srv_ip() + " 403 " + client_caller.get_nickname() + " " + channel_name + " :No such channel\r\n";
+    send(client_socket, msg.c_str(), msg.length(), 0);
 }
 
 void Channel::invite_user(std::string user)
@@ -294,18 +319,48 @@ void Server::kill_cmd(int client_socket, std::string buffer)
     }
     send(client_socket, "ERR KILL\n", 9, 0);
 }
+// std::vector<std::string> split(std::string str)
+// {
+//     std::vector<std::string> result;
+//     std::string tmp = "";
+//     for (int i = 0; i < str.length(); i++)
+//     {
+//         if (str[i] == ' ')
+//         {
+//             result.push_back(tmp);
+//             tmp = "";
+//         }
+//         else
+//             tmp += str[i];
+//     }
+//     result.push_back(tmp);
+//     return result;
+// }
+
+std::vector<std::string> get_args(std::string buffer)
+{
+    std::vector<std::string> args;
+    std::string arg;
+    std::stringstream ss(buffer);
+    while(ss >> arg)
+    {
+        args.push_back(arg);
+    }
+    return args;
+}
 
 void Server::handle_input(int client_socket)
 {   
     std::string buffer = this->client_request(client_socket);
+    std::vector<std::string> args = get_args(buffer); 
+    std::string command = args[0];
+    args.erase(args.begin());
+    for(size_t i =0; i < args.size();i++)
+        std::cout << args[i] << std::endl;
     if(buffer.empty())
     {
         return;
     }
-    std::string command = buffer.substr(0, buffer.find(" "));
-    // std::cout << "|" + command + "|" << std::endl;
-    buffer.erase(0, command.length() + 1);
-    std::cout << "|" + command + "|" << std::endl;
     // if(command == "MODE")
     // {
     //     this->mode_cmd(client_socket, buffer);
@@ -340,7 +395,7 @@ void Server::handle_input(int client_socket)
     }
     else if (command == "KICK")
     {
-        this->kick_cmd(client_socket, buffer);
+        this->kick_cmd(client_socket, args);
     }
     else if(command == "JOIN")
     {
@@ -352,7 +407,10 @@ void Server::handle_input(int client_socket)
     }
     else
     {
-        std::string msg = "421 " + command + " :Unknown command\r\n";
+        // std::string s;
+        // s = std::accumulate(begin(args), end(args), s);
+        // std::cout << s;
+        std::string msg = "421 ERR_UNKNOWNCOMMAND <" + command +"> :Unknown command\r\n";
         send(client_socket, msg.c_str(), msg.length(), 0);
     }
 }
