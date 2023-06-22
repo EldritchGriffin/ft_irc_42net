@@ -10,7 +10,7 @@ void    create_channel(int client_socket, std::string channel_name, std::string 
     std::vector<Channel> &channels = server.get_channels();
 
     Client client_caller = clients[client_socket];
-    Channel new_channel(channel_name, "this is a topic");
+    Channel new_channel(channel_name, "TODO :set a propper topic here");
     new_channel.set_admin(client_caller);
     new_channel.set_password(key);
     new_channel.add_user(client_caller);
