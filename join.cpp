@@ -45,18 +45,25 @@ void join_channel(int client_socket, std::string channel_name, std::string key, 
     std::cout << client_caller.get_nickname() << " Channel created: " << channel_name << std::endl;
 }
 
-void Server::join_cmd(int client_socket, std::string buffer)
+void Server::join_cmd(int client_socket, std::vector<std::string> args)
 {
     Client client_caller = clients[client_socket];
 
+    if (args.size() < 1)
+    {
+        call_ERR_NEEDMOREPARAMS(client_socket);
+        return;
+    }
+    if (args[0][0] != '#')
+    {
+        std::string message = ":" + this->get_srv_ip() + " " + ERR_NOSUCHCHANNEL + " " 
+        + client_caller.get_nickname() + " " + args[0] + " :No such channel\r\n";
+        send(client_socket, message.c_str(), message.length(), 0);
+        return;
+    }
 
-    std::string channel_name = buffer.substr(0, buffer.find(" "));
-    buffer.erase(0, channel_name.length() + 1);
-    std::string key = buffer.substr(0, buffer.length());
-    buffer.erase(0, key.length() + 1);
-
-    std::vector<std::string> channel_targets = split_multiple_targets(channel_name);
-    std::vector<std::string> key_targets = split_multiple_targets(key);
+    std::vector<std::string> channel_targets = split_multiple_targets(args[0]);
+    std::vector<std::string> key_targets = split_multiple_targets(args[1]);
 
     for(unsigned int i = 0; i < channel_targets.size(); i++)
     {

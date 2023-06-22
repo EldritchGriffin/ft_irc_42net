@@ -352,8 +352,6 @@ void Server::handle_input(int client_socket)
     std::vector<std::string> args = get_args(buffer); 
     std::string command = args[0];
     args.erase(args.begin());
-    for(size_t i =0; i < args.size();i++)
-        std::cout << args[i] << std::endl;
     if(buffer.empty())
     {
         return;
@@ -372,7 +370,7 @@ void Server::handle_input(int client_socket)
     }
     else if(command == "PASS")
     {
-        this->pass_cmd(client_socket, buffer);
+        this->pass_cmd(client_socket, args);
     }
     else if(command == "INVITE")
     {
@@ -380,7 +378,7 @@ void Server::handle_input(int client_socket)
     }
     else if(command == "NICK")
     {
-        this->nick_cmd(client_socket, buffer);
+        this->nick_cmd(client_socket, args);
     }
     else if(command == "TOPIC")
     {
@@ -388,7 +386,7 @@ void Server::handle_input(int client_socket)
     }
     else if(command == "USER")
     {
-        this->user_cmd(client_socket, buffer);
+        this->user_cmd(client_socket, args);
     }
     else if (command == "KICK")
     {
@@ -396,7 +394,7 @@ void Server::handle_input(int client_socket)
     }
     else if(command == "JOIN")
     {
-        this->join_cmd(client_socket, buffer);
+        this->join_cmd(client_socket, args);
     }
     else if(command == "MSG" || command == "PRIVMSG")
     {
@@ -533,6 +531,11 @@ std::string Server::get_srv_ip() const
     }
     freeifaddrs(ifaddr);
     return (ip);
+}
+
+std::string Server::get_srv_password() const
+{
+    return (this->srv_password);
 }
 
 
