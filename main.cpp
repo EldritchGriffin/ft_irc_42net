@@ -11,7 +11,7 @@ int main(int ac, char** av)
     Server server(atoi(av[1]), av[2]);
 
     while(true)
-    {//this while here is to restart the server if it crashes
+    {
         try
         {
             server.run();

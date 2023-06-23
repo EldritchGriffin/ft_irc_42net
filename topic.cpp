@@ -104,7 +104,7 @@ void Server::call_ERR_NEEDMOREPARAMS(int client_socket)
 {
     std::cerr << "ok" << std::endl;
     // std::string erro("TOPIC \r\n");
-    std::string erro(":IRC.srv.ma 472 <command here> :Not enough parameters\r\n");
+    std::string erro(":IRC.srv.ma 472 TOPIC :Not enough parameters\r\n");
     // std::string erro( ": 461 :Not enough parameters\r\n");
     send(client_socket, erro.c_str(), erro.length() , 0);
 }

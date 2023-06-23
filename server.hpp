@@ -39,11 +39,11 @@ class Server
 
         void auth_client(int client_socket);
 
-        void pass_cmd(int client_socket, std::vector<std::string> args);
-        void join_cmd(int client_socket, std::vector<std::string> args); 
-        void nick_cmd(int client_socket, std::vector<std::string> args); 
-        void user_cmd(int client_socket, std::vector<std::string> args); 
-        void kick_cmd(int client_socket, std::vector<std::string> args);
+        void pass_cmd(int client_socket, std::string buffer);
+        void join_cmd(int client_socket, std::string buffer); 
+        void nick_cmd(int client_socket, std::string buffer); 
+        void user_cmd(int client_socket, std::string buffer); 
+        void kick_cmd(int client_socket, std::string buffer);
         void part_cmd(int client_socket,std::string buffer);
         void kill_cmd(int client_socket, std::string buffer);
         void mode_cmd(int client_socket, std::string buffer);
