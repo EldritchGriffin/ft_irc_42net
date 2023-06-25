@@ -175,28 +175,46 @@ void Server::msg(int client_socket, std::string buffer)
 
 void Server::kick_cmd(int client_socket, std::string buffer)
 {
+    Client client_caller = clients[client_socket];
     std::string ch = buffer.substr(0,buffer.find(" "));
     buffer.erase(0,ch.length()+1);
     std::string user = buffer.substr(0,buffer.find(" "));
     buffer.erase(0,user.length()+1);
     std::string reason = buffer.substr(0);
-    for(std::vector<Channel>::iterator it = this->channels.begin(); it != this->channels.end(); ++it)
+    if (ch.empty() && user.empty() && reason.empty())
+    {
+        std::string msg = "461 ERR_NEEDMOREPARAMS <" + buffer +">:Not enough parameters\r\n";
+        send(client_socket, msg.c_str(), msg.length(), 0);
+        return;
+    }
+     for(std::vector<Channel>::iterator it = this->channels.begin(); it != this->channels.end(); ++it)
     {
         if(it->get_name() == ch)
         {
-            // if(it->get_admin().get_nickname() == this->clients[client_socket].get_nickname())
-            // {
-                it->kick_user(user);
-                std::string msg = ":" + this->clients[client_socket].get_nickname() + " KICK " + ch + " " + user + " :" + reason + "\r\n";
-                it->send_message(msg, client_socket);
+            if(it->get_admin().get_nickname() == client_caller.get_nickname())
+            {
+                for(std::vector<Client>::iterator it2 = it->get_users().begin(); it2 != it->get_users().end(); ++it2)
+                {
+                    if(it2->get_nickname() == user)
+                    {
+                        std::string msg = ":" + this->get_srv_ip() + " KICK " + ch + " " + user + " :Kicked by " + client_caller.get_nickname() + "\r\n";
+                        send(it2->get_socket(), msg.c_str(), msg.length(), 0);
+                        return;
+                    }
+                }
+                std::string msg = ":" + this->get_srv_ip() + " 441 " + client_caller.get_nickname() + " " + user + " :They aren't on that channel\r\n";
+                send(client_socket, msg.c_str(), msg.length(), 0);
                 return;
-            // }
-            // else
-            // {
-            //     return;
-            // }
+            }
+            // std::string msg = ":" + this->get_srv_ip() + " 482 " + client_caller.get_nickname() + " :You're not channel operator\r\n";
+            std::string msg ="482 ERR_CHANOPRIVSNEEDED <" + client_caller.get_nickname() + ">:You're not channel operator\r\n";
+            send(client_socket, msg.c_str(), msg.length(), 0);
+            return;
         }
     }
+    // std::string msg = ":" + this->get_srv_ip() + " 403 " + client_caller.get_nickname() + " " + ch + " :No such channel\r\n";
+    std::string msg ="403 ERR_NOSUCHCHANNEL <" + ch + "> :No such channel\r\n";
+    send(client_socket, msg.c_str(), msg.length(), 0);
 }
 
 void Channel::invite_user(std::string user)
@@ -355,7 +373,8 @@ void Server::handle_input(int client_socket)
     }
     else
     {
-        std::string msg = std::string(ERR_UNKNOWNCOMMAND) + " " + command + " :Unknown command\r\n";
+        // std::string msg = std::string(ERR_UNKNOWNCOMMAND) + " " + command + " :Unknown command\r\n";
+        std::string msg = "421 ERR_UNKNOWNCOMMAND <" + command +"> :Unknown command\r\n";
         send(client_socket, msg.c_str(), msg.length(), 0);
     }
 }
