@@ -40,12 +40,10 @@ void    Server::get_channel_topic(std::string channel_name, int client_socket)
     for(std::vector<Channel>::iterator ch = channels.begin(); ch != channels.end(); ch++)
     {
             int client_existens = ch->search_client_in_channel(client_socket);
-                std::cout << client_existens << "ddd\n";
         if (ch->get_name() == channel_name) //TOPIC #test 
         {
             if (client_existens)
             {
-                std::cout << "sending topic to limechat" << std::endl;
                 std::string message_sender = clients[client_socket].get_nickname();
                 std::string msg = ":"+ this->get_srv_ip() +" " + RPL_TOPIC + " " + message_sender + " #" + channel_name + " :" + ch->get_topic() + "\r\n";
                 send(client_socket, (msg).c_str(), msg.length(), 0);
@@ -65,20 +63,17 @@ void    Server::call_ERR_CHANOPRIVSNEEDED(int client_socket, std::string channel
 }
 
 void    Server::set_channel_topic(int client_socket, std::string channel_name, std::string buffer)
-{// TODO , unset topic
+{// TODO , unset topic // its supposed to be handled in the COMMAND MODE
     for(std::vector<Channel>::iterator ch = channels.begin(); ch != channels.end(); ch++)
     {
-        std::cout << "channel name in the queue :" + ch->get_name() << std::endl;
         if (ch->get_name() == channel_name)
         {
             int client_existens = ch->search_client_in_channel(client_socket);
             if (client_existens > 0 && client_existens < 3)
             {//:dan!d@Clk-830D7DDC TOPIC #v3 :This is a cool channel!!
-                std::cout << "setting the topic from the lamechat" << std::endl;
                 ch->set_topic(buffer);
                 std::string user_nam = clients[client_socket].get_nickname();
                 std::string msg = ":" + user_nam+"!"+user_nam[0]+"@localhost TOPIC " + channel_name + " :" +buffer + "\r\n";
-                std::cout << msg << std::endl;
                 send(client_socket, msg.c_str(), msg.length(), 0);
             }
             else
@@ -102,7 +97,6 @@ std::string Server::get_client_nick_by_socket(int client_socket)
 
 void Server::call_ERR_NEEDMOREPARAMS(int client_socket)
 {
-    std::cerr << "ok" << std::endl;
     // std::string erro("TOPIC \r\n");
     std::string erro(":IRC.srv.ma 472 TOPIC :Not enough parameters\r\n");
     // std::string erro( ": 461 :Not enough parameters\r\n");
@@ -134,35 +128,38 @@ void    Server::call_ERR_NOTONCHANNEL(int client_socket)
     send(client_socket, erro.c_str(), erro.length() , 0);
 }
 
+// [TOPIC]  => [TOPIC :]
+// [TOPIC #JAHAD]  => [TOPIC : #JAHAD]
+// [TOPIC #JAHAD trueking]  => [TOPIC : #JAHAD trueking]
+// [TOPIC #JAHAD :true king]  => [TOPIC : #JAHAD :true king]
+// no multiple targets for TOPIC || spaces are ignored
+
 void Server::topic_cmd(int client_socket, std::string buffer)
 {
-    std::cout << "++++++++++++"<< buffer << "+++++++++++++++" << std::endl; // debug
-    pp_ch(channels); // debug
     if (buffer.empty() || buffer == ":")
     {
-        call_ERR_NEEDMOREPARAMS(client_socket);
+        call_ERR_NEEDMOREPARAMS(client_socket); // [TOPIC]  => [TOPIC :]
         return ;
     }
-    std::cout << "+++++++++++++++++++++++++++++" << std::endl;// debug
-    std::cout << "command is :" + buffer << std::endl;
     std::string channel_name = buffer.substr(0, buffer.find(' '));
     buffer.erase(0, buffer.find(' '));
-    std::cout <<  "channel name is :" + channel_name + " command is :" + buffer << std::endl;// debug
     if (check_if_on_channel(client_socket, channel_name) == 1)
     {
         call_ERR_NOTONCHANNEL(client_socket);
         return ;
     }
     if (buffer.empty())
-    {//TOPIC #test 
+    {
         get_channel_topic(channel_name, client_socket);
     }
     else
     {
-        set_channel_topic(client_socket, channel_name, buffer); //TOPIC 
+        set_channel_topic(client_socket, channel_name, buffer);
     }
 }
 
 // ERR_NEEDMOREPARAMS  ERR_NOTONCHANNEL RPL_NOTOPIC  RPL_TOPIC    ERR_CHANOPRIVSNEEDED
 
 // to do unset topic
+
+// logtime start_date:2023-05-29
