@@ -2,14 +2,39 @@
 #include "Channel.hpp"
 #include "Client.hpp"
 
-void Server::mode_cmd(int client_socket, std::string buffer)
+void Server::mode_flag(int client_socket, std::string buffer)
 {
-    Client client_caller = clients[client_socket];
-    std::string channel_name = buffer.substr(0, buffer.find(" "));
-    buffer.erase(0, channel_name.length() + 1);
-    std::string mode = buffer.substr(0, buffer.find(" "));
-    buffer.erase(0, mode.length() + 1);
-    std::string user = buffer.substr(0, buffer.find(" "));
-    buffer.erase(0, user.length() + 1);
-    //TODO we need to know how many paramet we need for this mode:by absela
+    std::string channel_name = buffer.substr(0,buffer.find(' '));
+    buffer.erase(0,buffer.find(' '));
+    std::string mode = buffer.substr(0,buffer.find(' ')+2);
+    buffer.erase(0,buffer.find(' ')+2);
+
+    if (buffer.empty())
+    {
+        call_ERR_NEEDMOREPARAMS(client_socket);
+        return;
+    }
+    if (mode == "-i" || mode == "+i")
+    {
+
+    }
+    else if (mode == "-t" || mode == "+t")
+    {
+
+    }
+    else if (mode == "-k" || mode == "+k")
+    {
+
+    }
+    else if (mode == "-o" || mode == "+o")
+    {
+
+    }
+    else if (mode == "-l" || mode == "+l")
+    {
+
+    }
 }
+// i t k ol
+//   Parameters: <channel> {[+|-]|o|p|s|i|t|n|b|v} [<limit>] [<user>]
+//                [<ban mask>]
