@@ -1,4 +1,5 @@
 SRC 	:= main.cpp server.cpp Client.cpp Channel.cpp Tools.cpp authenticateUser.cpp join.cpp topic.cpp
+SRC 	:= *.cpp
 CC 		:= c++
 CFLAG	:= -Wall -Werror -Wextra -std=c++98
 NAME 	:= ircserv

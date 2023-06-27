@@ -323,15 +323,15 @@ void Server::handle_input(int client_socket)
     std::cout << "|" + buffer + "|" << std::endl;
     std::string command = buffer.substr(0, buffer.find(" "));
     buffer.erase(0, command.length() + 1);
-    // if(command == "MODE")
-    // {
-    //     this->mode_cmd(client_socket, buffer);
-    // }
+    if(command == "MODE")
+    {
+        this->mode_flag(client_socket, buffer);
+    }
     // if(command == "LIST")
     // {
     //     this->list(client_socket, buffer);
     // }
-    if (command == "KILL")
+    else if (command == "KILL")
     {
         this->kill_cmd(client_socket, buffer);
     }
