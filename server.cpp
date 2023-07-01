@@ -342,7 +342,7 @@ void Server::handle_input(int client_socket)
     {
         this->part_cmd(client_socket, buffer);
     }
-    else if(command == "PASS")
+    else if(command == "PASS") // griffin
     {
         this->pass_cmd(client_socket, buffer);
     }
@@ -350,15 +350,15 @@ void Server::handle_input(int client_socket)
     {
         this->invite_cmd(client_socket, buffer);
     }
-    else if(command == "NICK")
+    else if(command == "NICK") // griffin
     {
         this->nick_cmd(client_socket, buffer);
     }
-    else if(command == "TOPIC")
+    else if(command == "TOPIC") // scayho
     {
         this->topic_cmd(client_socket, buffer);
     }
-    else if(command == "USER")
+    else if(command == "USER") // griffin
     {
         this->user_cmd(client_socket, buffer);
     }
@@ -366,11 +366,11 @@ void Server::handle_input(int client_socket)
     {
         this->kick_cmd(client_socket, buffer);
     }
-    else if(command == "JOIN")
+    else if(command == "JOIN") // griffin
     {
         this->join_cmd(client_socket, buffer);
     }
-    else if(command == "MSG" || command == "PRIVMSG")
+    else if(command == "MSG" || command == "PRIVMSG") // scayho
     {
         this->msg(client_socket, buffer);
     }

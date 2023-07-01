@@ -77,6 +77,7 @@ void    Server::set_channel_topic(int client_socket, std::string channel_name, s
                 std::string user_nam = clients[client_socket].get_nickname();
                 std::string msg = ":" + user_nam+"!"+user_nam[0]+"@localhost TOPIC " + channel_name + " :" +buffer + "\r\n";
                 send(client_socket, msg.c_str(), msg.length(), 0);
+                ch->send_message(msg, client_socket);
             }
             else
                 call_ERR_CHANOPRIVSNEEDED(client_socket, channel_name);
@@ -99,9 +100,7 @@ std::string Server::get_client_nick_by_socket(int client_socket)
 
 void Server::call_ERR_NEEDMOREPARAMS(int client_socket)
 {
-    // std::string erro("TOPIC \r\n");
     std::string erro(":IRC.srv.ma 472 TOPIC :Not enough parameters\r\n");
-    // std::string erro( ": 461 :Not enough parameters\r\n");
     send(client_socket, erro.c_str(), erro.length() , 0);
 }
 
@@ -146,6 +145,7 @@ void    Server::unset_channel_topic(std::string channel_name, int client_socket)
             std::string erro(":IRC.srv.ma 442 TOPIC :you have unsetted the topic !!\r\n");
             std::cout << "yooooooooooo" << std::endl;
             send(client_socket, erro.c_str(), erro.length() , 0);
+            ch->send_message(erro, client_socket);
         }
     }
 }
