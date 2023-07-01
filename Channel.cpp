@@ -10,6 +10,7 @@ Channel::Channel(std::string name, std::string topic)
     this->name = name;
     this->topic = topic;
     this->password = "";
+    this->topic_changers_flag = 0;
 }
 
 Channel::~Channel()
@@ -29,6 +30,11 @@ std::string Channel::get_password() const
 void Channel::set_name(std::string name)
 {
     this->name = name;
+}
+
+void Channel::set_topic_flag(int g)
+{
+    this->topic_changers_flag = g;
 }
 
 void Channel::set_topic(std::string topic)
@@ -67,6 +73,10 @@ std::string Channel::get_name() const
     return this->name;
 }
 
+int Channel::get_topic_flag() const
+{
+    return this->topic_changers_flag;
+}
 std::string Channel::get_topic() const
 {
     return this->topic;

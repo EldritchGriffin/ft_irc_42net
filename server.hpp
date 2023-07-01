@@ -88,6 +88,8 @@ class Server
         int check_if_on_channel(int client_socket, std::string channel_name);
         void    call_ERR_NOTONCHANNEL(int client_socket);
         void    call_ERR_CHANOPRIVSNEEDED(int client_socket, std::string channel_name);
+        void    mode_topic(int client_socket, std::string buffer, std::string mode);
+        void    unset_channel_topic(std::string channel_name, int client_socket);
 };
 
 void    pp_ch(std::vector<Channel> &tmp);

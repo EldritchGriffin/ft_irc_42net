@@ -365,3 +365,10 @@
 #define ERR_ALREADYREGISTERED "559"
 
 #define WLCM_MSG "𝕎𝕖𝕝𝕔𝕠𝕞𝕖 𝕥𝕠 𝕥𝕙𝕖 𝕀ℝℂ 𝕤𝕖𝕣𝕧𝕖𝕣. 𝕄𝕒𝕕𝕖 𝕓𝕪: 𝕒𝕖𝕝𝕪𝕒𝕜𝕠𝕦, 𝕒𝕓𝕖𝕝𝕒𝕙𝕔𝕖. 𝕒𝕓𝕤𝕖𝕝𝕒."
+
+
+
+
+
+#define MODIFIEABLE_TOPIC 1
+#define UNMODIFIEABLE_TOPIC 0

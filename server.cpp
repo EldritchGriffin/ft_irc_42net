@@ -314,7 +314,7 @@ void Server::kill_cmd(int client_socket, std::string buffer)
 }
 
 void Server::handle_input(int client_socket)
-{   
+{
     std::string buffer = this->client_request(client_socket);
     if(buffer.empty())
     {
@@ -324,7 +324,10 @@ void Server::handle_input(int client_socket)
     std::string command = buffer.substr(0, buffer.find(" "));
     buffer.erase(0, command.length() + 1);
     if(command == "MODE")
-    {
+    // MODE # +t +l 100 -o & 
+    //MODE # +tl 100
+    {   // MODE & +++++---+++tm  +t -m  +t-m
+        //+lio 100 heheh
         this->mode_flag(client_socket, buffer);
     }
     // if(command == "LIST")
