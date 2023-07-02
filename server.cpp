@@ -217,37 +217,47 @@ void Server::kick_cmd(int client_socket, std::string buffer)
     send(client_socket, msg.c_str(), msg.length(), 0);
 }
 
-void Channel::invite_user(std::string user)
-{
-    for(std::vector<Client>::iterator it = this->users.begin(); it != this->users.end(); ++it)
-    {
-        if(it->get_nickname() == user)
-        {
-            return;
-        }
-    }
-}
+// void Channel::invite_user(std::string user)
+// {
+//     for(std::vector<Client>::iterator it = this->users.begin(); it != this->users.end(); ++it)
+//     {
+//         if(it->get_nickname() == user)
+//         {
+//             return;
+//         }
+//     }
+// }
+// void Channel::invite_user(Client user)
+// {
+//     for(std::vector<Client>::iterator it = this->users.begin(); it != this->users.end(); ++it)
+//     {
+//         if(it->get_nickname() == user)
+//         {
+//             return;
+//         }
+//     }
+// }
 
 void Server::invite_cmd(int client_socket, std::string buffer){
     std::string user = buffer.substr(0,buffer.find(" "));
     buffer.erase(0,user.length()+1);
     std::string ch = buffer.substr(0,buffer.find(" "));
-
-    for(std::vector<Channel>::iterator it = this->channels.begin(); it != this->channels.end(); ++it)
-    {
-        if(it->get_name() == ch)
-        {
-            if(it->get_admin().get_nickname() == this->clients[client_socket].get_nickname())
-            {
-                it->invite_user(user);
-                return;
-            }
-            else
-            {
-                return;
-            }
-        }
-    }
+    (void)client_socket;
+    // for(std::vector<Channel>::iterator it = this->channels.begin(); it != this->channels.end(); ++it)
+    // {
+    //     if(it->get_name() == ch)
+    //     {
+    //         if(it->get_admin().get_nickname() == this->clients[client_socket].get_nickname())
+    //         {
+    //             it->add_invited_user()
+    //             return;
+    //         }
+    //         else
+    //         {
+    //             return;
+    //         }
+    //     }
+    // }
 }
 
 void Server::part_cmd(int client_socket,std::string buffer){

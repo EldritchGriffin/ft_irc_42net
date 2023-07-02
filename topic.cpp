@@ -72,7 +72,6 @@ void    Server::set_channel_topic(int client_socket, std::string channel_name, s
             int client_existens = ch->search_client_in_channel(client_socket);
             if ((client_existens > 0 && client_existens < 3) || (client_existens == 3 && ch->get_topic_flag() == 1))
             {//:dan!d@Clk-830D7DDC TOPIC #v3 :This is a cool channel!!
-            std::cout << "sinon-chan UwU :" + buffer << std::endl;
                 ch->set_topic(buffer);
                 std::string user_nam = clients[client_socket].get_nickname();
                 std::string msg = ":" + user_nam+"!"+user_nam[0]+"@localhost TOPIC " + channel_name + " :" +buffer + "\r\n";

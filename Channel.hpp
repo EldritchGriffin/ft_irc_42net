@@ -17,6 +17,7 @@ class Channel{
         Client      admin;
         int         topic_changers_flag;
         std::vector<Client> users;
+        std::vector<Client> invited;
         std::vector<Client> operators;
     public:
         Channel();
