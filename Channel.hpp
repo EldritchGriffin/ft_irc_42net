@@ -54,7 +54,8 @@ class Channel{
         int search_client_in_channel(std::string client_name);
 
         void    update_topic_mode(Client client_socket, std::string mode);
-
+        int check_if_user_exist_in_channel(std::string user);
+        void add_invited_user(Client &user, std::string cmd, int client_socket);
 };
 
 

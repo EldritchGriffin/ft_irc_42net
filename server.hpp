@@ -84,12 +84,16 @@ class Server
 
 
         std::string get_client_nick_by_socket(int client_socket);
-        void call_ERR_NEEDMOREPARAMS(int client_socket);
+        void call_ERR_NEEDMOREPARAMS(int client_socket, std::string cmd);
         int check_if_on_channel(int client_socket, std::string channel_name);
-        void    call_ERR_NOTONCHANNEL(int client_socket);
-        void    call_ERR_CHANOPRIVSNEEDED(int client_socket, std::string channel_name);
+        void    call_ERR_NOTONCHANNEL(int client_socket, std::string cmd);
+        void    call_ERR_NOSUCHNICK(int client_socket, std::string cmd);
+        void    call_ERR_USERONCHANNEL(int client_socket, std::string cmd);
+        void    call_ERR_CHANOPRIVSNEEDED(int client_socket, std::string channel_name, std::string cmd);
         void    mode_topic(int client_socket, std::string buffer, std::string mode);
         void    unset_channel_topic(std::string channel_name, int client_socket);
+        Client &get_user_obj(std::string target);
+        int check_if_user_exist(std::string user);
 };
 
 void    pp_ch(std::vector<Channel> &tmp);

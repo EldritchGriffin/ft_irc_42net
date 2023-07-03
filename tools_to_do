@@ -1,1 +1,2 @@
 return a client from a vector using nickname/socket
+return a client from a map using nickname/socket
