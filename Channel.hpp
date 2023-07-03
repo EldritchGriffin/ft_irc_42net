@@ -16,6 +16,8 @@ class Channel{
         std::string password;
         Client      admin;
         int         topic_changers_flag;
+        // int         invite_changers_flag;
+        // int         limit_changers_flags;
         std::vector<Client> users;
         std::vector<Client> invited;
         std::vector<Client> operators;

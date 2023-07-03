@@ -272,37 +272,38 @@ void Server::part_cmd(int client_socket,std::string buffer){
     }
 }
 
-// void Server::list(int client_socket, std::string buffer) {
-//     // buffer.erase(0, buffer.find(" ") + 1);
-//     std::string ch = buffer.substr(0, buffer.find(" "));
-//     std::cout << "*** " << buffer << std::endl;
-//     for (std::vector<Channel>::iterator it = channels.begin(); it != channels.end(); ++it) {
-//         if (it->get_name() == ch) {
-//             std::string msg = "LIST " + it->get_name() + " ";
-//             std::string msg1 = it->list_cmd(msg);
-//             msg1 += "\r\n";
-//             send(client_socket, msg1.c_str(), msg1.length(), 0);
-//             return;
-//         }
-//     }
-//     send(client_socket, "ERR LIST\r\n", 10, 0);
-// }
-
-// void Server::list(int client_socket,std::string buffer)
-// {
-//     buffer.erase(0,buffer.find(" ")+1);
-//     std::string ch = buffer.substr(0,buffer.find(" "));
-//     for(std::vector<Channel>::iterator it = this->channels.begin(); it != this->channels.end(); ++it)
-//     {
-//         if(it->get_name() == ch)
-//         {
-//             std::string msg = "LIST " + it->get_name() + " " + it->get_admin().get_nickname() + " " + std::to_string(it->get_name().size()) + "\n";
-//             send(client_socket, msg.c_str(), msg.length(), 0);
-//             return;
-//         }
-//     }
-//     send(client_socket, "ERR LIST\r\n", 10, 0);
-// }
+void Server::list_cmd(int client_socket, std::string buffer)
+{
+    std::string ch = buffer.substr(0,buffer.find(" "));
+    // if(ch.empty())
+    // {
+    //     std::string msg2 = "321 RPL_LISTSTART :"+ ch +":Users Name\r\n";
+    //     send(client_socket, msg2.c_str(), msg2.length(), 0);
+    //     for(std::vector<Channel>::iterator it = this->channels.begin(); it != this->channels.end(); ++it)
+    //     {
+    //         std::string msg = "322 RPL_LIST " + it->get_name() + " " + std::to_string(it->get_users().size()) + " :Users Name\r\n";
+    //         send(client_socket, msg.c_str(), msg.length(), 0);
+    //     }
+    //     std::string msg1 = "323 RPL_LISTEND :End of /LIST\r\n";
+    //     send(client_socket, msg1.c_str(), msg1.length(), 0);
+    //     return;
+    // }
+    for(std::vector<Channel>::iterator it = this->channels.begin(); it != this->channels.end(); ++it)
+    {
+        if(it->get_name() == ch)
+        {
+            std::string msg = "321 RPL_LISTSTART :"+ ch + " " +it->get_topic()+"\r\n";
+            send(client_socket, msg.c_str(), msg.length(), 0);
+            std::string msg2 = "322 RPL_LIST " + it->get_name() + " " + std::to_string(it->get_users().size()) + " " + it->get_topic()+"\r\n";
+            send(client_socket, msg2.c_str(), msg2.length(), 0);
+            std::string msg3 = "323 RPL_LISTEND :End of /LIST\r\n";
+            send(client_socket, msg3.c_str(), msg3.length(), 0);
+            return;
+        }
+    }
+    std::string msg = "403 ERR_NOSUCHCHANNEL <" + ch + "> :No such channel\r\n";
+    send(client_socket, msg.c_str(), msg.length(), 0);
+}
 
 void Server::kill_cmd(int client_socket, std::string buffer)
 {
@@ -340,15 +341,15 @@ void Server::handle_input(int client_socket)
         //+lio 100 heheh
         this->mode_flag(client_socket, buffer);
     }
-    // if(command == "LIST")
-    // {
-    //     this->list(client_socket, buffer);
-    // }
-    else if (command == "KILL")
+    else if(command == "LIST")
+    {
+        this->list_cmd(client_socket, buffer);
+    }
+    else if (command == "KILL") // absela
     {
         this->kill_cmd(client_socket, buffer);
     }
-    else if(command == "PART")
+    else if(command == "PART") // absela
     {
         this->part_cmd(client_socket, buffer);
     }
@@ -372,7 +373,7 @@ void Server::handle_input(int client_socket)
     {
         this->user_cmd(client_socket, buffer);
     }
-    else if (command == "KICK")
+    else if (command == "KICK") //absela
     {
         this->kick_cmd(client_socket, buffer);
     }
@@ -385,7 +386,7 @@ void Server::handle_input(int client_socket)
         this->msg(client_socket, buffer);
     }
     else
-    {
+    {// absela
         // std::string msg = std::string(ERR_UNKNOWNCOMMAND) + " " + command + " :Unknown command\r\n";
         std::string msg = "421 ERR_UNKNOWNCOMMAND <" + command +"> :Unknown command\r\n";
         send(client_socket, msg.c_str(), msg.length(), 0);

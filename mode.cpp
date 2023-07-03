@@ -2,6 +2,14 @@
 #include "Channel.hpp"
 #include "Client.hpp"
 
+typedef struct flags
+{
+    int t;
+    int i;
+    int l;
+    int k;
+    int o;
+};
 
 
 void    Channel::update_topic_mode(Client client_socket, std::string mode) // TODO reread the options if that works as needed && change the replay numbers
