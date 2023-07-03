@@ -263,6 +263,13 @@ int Channel::check_if_user_exist_in_channel(std::string user)
     return (0);
 }
 
+void    Server::call_ERR_NOSUCHCHANNEL(int client_socket, std::string ch, std::string cmd)
+{
+    std::string erro(":IRC.srv.ma " + std::string(ERR_NOSUCHCHANNEL) + " " + cmd + " :Channel " + ch + " not found\r\n"); // TODO check replay number
+    send(client_socket, erro.c_str(), erro.length() , 0);
+}
+
+
 void Server::invite_cmd(int client_socket, std::string buffer){
     std::string user = buffer.substr(0,buffer.find(" "));
     buffer.erase(0,user.length()+1);
@@ -302,7 +309,7 @@ void Server::invite_cmd(int client_socket, std::string buffer){
         }
     }
     }
-    // TODO call  CHANNEL DO NOT EXIST
+    call_ERR_NOSUCHCHANNEL(client_socket, ch,"INVITE");
 }
 
 void    Server::call_ERR_USERONCHANNEL(int client_socket, std::string cmd)
@@ -413,7 +420,7 @@ void Server::handle_input(int client_socket)
     {
         this->pass_cmd(client_socket, buffer);
     }
-    else if(command == "INVITE")
+    else if(command == "INVITE") // scayho
     {
         this->invite_cmd(client_socket, buffer);
     }

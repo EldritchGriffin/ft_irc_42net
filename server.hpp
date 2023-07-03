@@ -94,6 +94,8 @@ class Server
         void    unset_channel_topic(std::string channel_name, int client_socket);
         Client &get_user_obj(std::string target);
         int check_if_user_exist(std::string user);
+        void    call_ERR_NOSUCHCHANNEL(int client_socket, std::string ch, std::string cmd);
+        void    mode_invite(int client_socket, std::string channel_name, std::string mode);
 };
 
 void    pp_ch(std::vector<Channel> &tmp);

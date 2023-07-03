@@ -51,9 +51,60 @@ void    Server::mode_topic(int client_socket, std::string channel_name, std::str
             return ;
         }
     }
-    std::string erro(":IRC.srv.ma 442 TOPIC : Channel not found !!\r\n");
+    std::string erro(":IRC.srv.ma 442 MODE : Channel not found !!\r\n");
     send(client_socket , erro.c_str(), erro.length() , 0);
     //TODO error no such channel
+}
+
+void    Channel::update_invite_mode(Client client_socket, std::string mode)
+{
+    int droit = search_client_in_channel(client_socket.get_nickname());
+    if (droit != 1 && droit != 2)
+    {
+        std::string erro(":IRC.srv.ma 442 MODE :You do not have permission to update the mode +-i !!\r\n");
+        if (droit != 3)
+        {
+            std::string erro(":IRC.srv.ma 442 MODE :You do not belong to this channel !!\r\n");
+            send(client_socket.get_socket(), erro.c_str(), erro.length() , 0);
+        }
+        else
+            send(client_socket.get_socket(), erro.c_str(), erro.length() , 0);
+    }
+    else if (mode == "+i")
+    {
+        if (invite_changers_flag)
+            return ;
+        invite_changers_flag = 1;
+        std::string msg(":" + client_socket.get_nickname() + "!~h@localhost MODE " + name + " +i " + "\r\n");
+        send(client_socket.get_socket() , msg.c_str(), msg.length() , 0);
+        send_message(msg, client_socket.get_socket());
+    }
+    else if ("-i")
+    {
+        if (!invite_changers_flag)
+            return ;
+        std::string msg(":" + client_socket.get_nickname() + "!~h@localhost MODE " + name + " -i " + "\r\n");
+        invite_changers_flag = 0;
+        send(client_socket.get_socket() , msg.c_str(), msg.length() , 0);
+        send_message(msg, client_socket.get_socket());
+    }
+}
+
+void    Server::mode_invite(int client_socket, std::string channel_name, std::string mode)
+{
+        std::vector<Channel> &Channels_copy = get_channels();
+    // Channel *target_channel;
+    for (std::vector<Channel>::iterator p = Channels_copy.begin(); p != Channels_copy.end();p++)
+    {
+        // std::cout << channel_name + " ?= "+ p->get_name() << std::endl; // debugging purpose
+        if (channel_name == p->get_name())
+        {
+            p->update_invite_mode(clients[client_socket], mode);
+            return ;
+        }
+    }
+    std::string erro(":IRC.srv.ma 442 MODE : Channel not found !!\r\n");
+    send(client_socket , erro.c_str(), erro.length() , 0);
 }
 
 
@@ -74,7 +125,7 @@ void Server::mode_flag(int client_socket, std::string buffer)
     std::cout << mode << std::endl;
     if (mode == "-i" || mode == "+i")
     {
-
+        mode_invite(client_socket, channel_name, mode);
     }
     else if (mode == "-t" || mode == "+t")
     {

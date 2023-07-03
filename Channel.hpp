@@ -16,6 +16,7 @@ class Channel{
         std::string password;
         Client      admin;
         int         topic_changers_flag;
+        int         invite_changers_flag;
         std::vector<Client> users;
         std::vector<Client> invited;
         std::vector<Client> operators;
@@ -54,6 +55,7 @@ class Channel{
         int search_client_in_channel(std::string client_name);
 
         void    update_topic_mode(Client client_socket, std::string mode);
+        void    update_invite_mode(Client client_socket, std::string mode);
         int check_if_user_exist_in_channel(std::string user);
         void add_invited_user(Client &user, std::string cmd, int client_socket);
 };
