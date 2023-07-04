@@ -132,7 +132,9 @@ std::vector<std::string> split(std::string buffer)
     std::string tmp;
     std::stringstream ss(buffer);
     while (ss >> tmp)
+    {
         result.push_back(tmp);
+    }
     return result;
 }
 
@@ -244,6 +246,34 @@ std::vector<std::string> split(std::string buffer)
 //     return tt;
 // }
 // handle ERR_NOSUCHCHANNEL in case false channel;
+
+void    mode_operator(int client_socket, std::string channel_name, std::string mode, std::string arg)
+{
+    (void)client_socket;
+    (void)channel_name;
+    (void)mode;
+    (void)arg;
+    std::cout << "mode " + mode + " with parameter " + arg << std::endl;
+}
+
+void    mode_key(int client_socket, std::string channel_name, std::string mode, std::string arg)
+{
+    (void)client_socket;
+    (void)channel_name;
+    (void)mode;
+    (void)arg;
+    std::cout << "mode " + mode + " with parameter " + arg << std::endl;
+}
+
+void    mode_limit(int client_socket, std::string channel_name, std::string mode, std::string arg)
+{
+    (void)client_socket;
+    (void)channel_name;
+    (void)mode;
+    (void)arg;
+    std::cout << "mode " + mode + " with parameter " + arg << std::endl;
+}
+
 void Server::mode_flag(int client_socket, std::string buffer)
 {
     std::vector<std::string> arg = split(buffer);
@@ -265,49 +295,75 @@ void Server::mode_flag(int client_socket, std::string buffer)
     std::string mode = arg[0];
     arg.erase(arg.begin());
     int i=0;
-    while(mode[i])
+    std::string option_sign;
+    std::string option_param;
+    while(mode[0])
     {
-        if (mode[1] == 'i'){
-            if (mode == "+i" || mode == "-i")
-                mode_invite(client_socket, channel_name, mode);
-            // else
-            //     callUNKNOWNMODE(client_socket, mode);
-        }
-        else if (mode[1] == 't'){
-            if (mode == "+t" || mode == "-t")
-                mode_topic(client_socket, channel_name, mode);
-            // else
-            //     callUNKNOWNMODE(client_socket, mode);
-        }
-        else if (mode[1] == 'l'){
-            if (mode == "+l" || mode == "-l")
+        if (mode[0] == '+')
+            option_sign = "+";
+        else if (mode[0] == '-')
+            option_sign = "-";
+        else if (mode[0] == 'i'){
+            option_param = option_sign + mode.at(0);
+            if (option_param == "+i" || option_param == "-i")
             {
-                // mode_limit(client_socket, channel_name, mode, arg[0]);
-                arg.erase(arg.begin());
+                mode_invite(client_socket, channel_name, option_param);
             }
-            // else
-            //     callUNKNOWNMODE(client_socket, mode);
         }
-        else if (mode[1] == 'k'){
-            if (mode == "+k" || mode == "-k")
+        else if (mode[0] == 't'){
+            option_param = option_sign + mode.at(0);
+            if (option_param == "+t" || option_param == "-t")
             {
-                // mode_key(client_socket, channel_name, mode,arg[0]);
-                // arg.erase(arg.begin());
+                mode_topic(client_socket, channel_name, option_param);
             }
-            // else
-            //     callUNKNOWNMODE(client_socket, mode);
         }
-        else if (mode[1] == 'o'){
-            if (mode == "+o" || mode == "-o")
+        else if (mode[0] == 'l'){
+            option_param = option_sign + mode.at(0);
+            if (option_param == "+l" || option_param == "-l") // CHECK IF THERE IS A PARAMETER FOR THE COMMAND
             {
-                // mode_operator(client_socket, channel_name, mode, arg[0]);
-                // arg.erase(arg.begin());
+                if (arg.size() < 1)
+                    call_ERR_NEEDMOREPARAMS(client_socket,"MODE"); // update it for the right message
+                // else if () // check if the numbers are degite
+                //     call_ERR_NEEDMOREPARAMS(client_socket,"MODE"); // update it for the right message
+                else
+                {
+                    mode_limit(client_socket, channel_name, option_param, arg[0]);
+                    arg.erase(arg.begin());
+                }
             }
-            // else
-            //     callUNKNOWNMODE(client_socket, mode);
+        }
+        else if (mode[0] == 'k'){
+            option_param = option_sign + mode.at(0);
+            if (option_param == "+k" || option_param == "-k") // CHECK IF THERE IS A PARAMETER FOR THE COMMAND
+            {
+                if (arg.size() < 1)
+                    call_ERR_NEEDMOREPARAMS(client_socket,"MODE"); // update it for the right message
+                else
+                {
+                    mode_key(client_socket, channel_name, option_param,arg[0]);
+                    arg.erase(arg.begin());
+                }
+            }
+        }
+        else if (mode[0] == 'o'){
+            option_param = option_sign + mode.at(0);
+            if (option_param == "+o" || option_param == "-o") // CHECK IF USER EXIST AND THERE IS A PARAMETER FOR THE COMMAND
+            {
+                if (arg.size() < 1)
+                    call_ERR_NEEDMOREPARAMS(client_socket,"MODE"); // update it for the right message
+                else if (check_if_user_exist(arg[0]) == 0)
+                    call_ERR_NEEDMOREPARAMS(client_socket,"MODE"); // update it for the right message
+                else
+                {
+
+                    mode_operator(client_socket, channel_name, option_param, arg[0]);
+                    arg.erase(arg.begin());
+                }
+            }
         }
         else
             callUNKNOWNMODE(client_socket, mode);
+        mode.erase(mode.begin());
         i++;
     }
 }
