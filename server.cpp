@@ -227,37 +227,101 @@ void Server::kick_cmd(int client_socket, std::string buffer)
 //         }
 //     }
 // }
-// void Channel::invite_user(Client user)
-// {
-//     for(std::vector<Client>::iterator it = this->users.begin(); it != this->users.end(); ++it)
-//     {
-//         if(it->get_nickname() == user)
-//         {
-//             return;
-//         }
-//     }
-// }
+void Channel::add_invited_user(Client &user, std::string cmd, int client_socket)
+{
+    invited.push_back(user);
+    std::string erro(":IRC.srv.ma 472 " + cmd + " :Client has been INVITE SUCCESSFULY\r\n"); // TODO check replay number
+    send(client_socket, erro.c_str(), erro.length() , 0);
+}
+
+int Server::check_if_user_exist(std::string user)
+{
+    for(std::map<int ,Client>::iterator usr = clients.begin(); usr != clients.end(); usr++)
+        if (usr->second.get_nickname() == user)
+            return (1);
+    return (0);
+}
+
+Client &Server::get_user_obj(std::string target)
+{
+    for(std::map<int ,Client>::iterator usr = clients.begin(); usr != clients.end(); usr++)
+    {
+        if (usr->second.get_nickname() == target)
+            return (usr->second);
+    }
+    return (clients.begin()->second);
+
+}
+
+int Channel::check_if_user_exist_in_channel(std::string user)
+{
+    for(std::vector<Client>::iterator it = users.begin(); it != users.end(); ++it)
+    {
+        if (it->get_nickname() == user)
+            return (1);
+    }
+    return (0);
+}
+
+void    Server::call_ERR_NOSUCHCHANNEL(int client_socket, std::string ch, std::string cmd)
+{
+    std::string erro(":IRC.srv.ma " + std::string(ERR_NOSUCHCHANNEL) + " " + cmd + " :Channel " + ch + " not found\r\n"); // TODO check replay number
+    send(client_socket, erro.c_str(), erro.length() , 0);
+}
+
 
 void Server::invite_cmd(int client_socket, std::string buffer){
     std::string user = buffer.substr(0,buffer.find(" "));
     buffer.erase(0,user.length()+1);
     std::string ch = buffer.substr(0,buffer.find(" "));
-    (void)client_socket;
-    // for(std::vector<Channel>::iterator it = this->channels.begin(); it != this->channels.end(); ++it)
-    // {
-    //     if(it->get_name() == ch)
-    //     {
-    //         if(it->get_admin().get_nickname() == this->clients[client_socket].get_nickname())
-    //         {
-    //             it->add_invited_user()
-    //             return;
-    //         }
-    //         else
-    //         {
-    //             return;
-    //         }
-    //     }
-    // }
+    if (user == "" || ch == "")
+        call_ERR_NEEDMOREPARAMS(client_socket, "INVITE");
+    else{
+
+    for(std::vector<Channel>::iterator it = this->channels.begin(); it != this->channels.end(); ++it)
+    {
+        std::cout << it->get_name() << " | " << ch << std::endl;
+        if(it->get_name() == ch)
+        {
+            if(it->search_client_in_channel(client_socket) == 1 || it->search_client_in_channel(client_socket) == 2)
+            {
+                if (check_if_user_exist(user) == 0)
+                {
+                    call_ERR_NOSUCHNICK(client_socket, "INVITE");
+                    return ;
+                }
+                if (it->check_if_user_exist_in_channel(user) == 1)
+                {
+                    call_ERR_USERONCHANNEL(client_socket, "INVITE");
+                    return ;
+                }
+                it->add_invited_user(get_user_obj(user), "INVITE", client_socket); // TODO RPL_INVITING
+                return;
+            }
+            else
+            {
+                if (it->search_client_in_channel(client_socket) == 0)
+                    call_ERR_NOTONCHANNEL(client_socket, "INVITE");
+                else
+                    call_ERR_CHANOPRIVSNEEDED(client_socket, ch,"INVITE");
+                return;
+            }
+        }
+    }
+    }
+    call_ERR_NOSUCHCHANNEL(client_socket, ch,"INVITE");
+}
+
+void    Server::call_ERR_USERONCHANNEL(int client_socket, std::string cmd)
+{
+    std::string erro(":IRC.srv.ma 472 " + cmd + " :Client already exist in channel\r\n"); // TODO check replay number
+    send(client_socket, erro.c_str(), erro.length() , 0);
+}
+
+void    Server::call_ERR_NOSUCHNICK(int client_socket, std::string cmd)
+{
+    std::string erro(":IRC.srv.ma 472 " + cmd + " :Client not exist\r\n"); // TODO check replay number
+    send(client_socket, erro.c_str(), erro.length() , 0);
 }
 
 void Server::part_cmd(int client_socket,std::string buffer){
@@ -357,7 +421,7 @@ void Server::handle_input(int client_socket)
     {
         this->pass_cmd(client_socket, buffer);
     }
-    else if(command == "INVITE")
+    else if(command == "INVITE") // scayho
     {
         this->invite_cmd(client_socket, buffer);
     }

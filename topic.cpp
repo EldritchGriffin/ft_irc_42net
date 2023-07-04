@@ -57,9 +57,9 @@ void    Server::get_channel_topic(std::string channel_name, int client_socket)
     //error channel not found
 }
 
-void    Server::call_ERR_CHANOPRIVSNEEDED(int client_socket, std::string channel_name)
+void    Server::call_ERR_CHANOPRIVSNEEDED(int client_socket, std::string channel_name, std::string cmd)
 {
-    std::string erro(":IRC.srv.ma 482 TOPIC : You are a common user of this channel {" + channel_name +"} to push your privilege !!\r\n");
+    std::string erro(":IRC.srv.ma 482 " + cmd + " : You are a common user of this channel {" + channel_name +"} to push your privilege !!\r\n");
     send(client_socket, erro.c_str(), erro.length() , 0);
 }
 
@@ -79,7 +79,7 @@ void    Server::set_channel_topic(int client_socket, std::string channel_name, s
                 ch->send_message(msg, client_socket);
             }
             else
-                call_ERR_CHANOPRIVSNEEDED(client_socket, channel_name);
+                call_ERR_CHANOPRIVSNEEDED(client_socket, channel_name,  "TOPIC");
             return ;
         }
     }
@@ -97,9 +97,9 @@ std::string Server::get_client_nick_by_socket(int client_socket)
 }
 
 
-void Server::call_ERR_NEEDMOREPARAMS(int client_socket)
+void Server::call_ERR_NEEDMOREPARAMS(int client_socket,  std::string cmd)
 {
-    std::string erro(":IRC.srv.ma 472 TOPIC :Not enough parameters\r\n");
+    std::string erro(":IRC.srv.ma 472 " + cmd + " :Not enough parameters\r\n");
     send(client_socket, erro.c_str(), erro.length() , 0);
 }
 
@@ -122,9 +122,9 @@ int Server::check_if_on_channel(int client_socket, std::string channel_name)
     return (1);
 }
 
-void    Server::call_ERR_NOTONCHANNEL(int client_socket)
+void    Server::call_ERR_NOTONCHANNEL(int client_socket, std::string cmd)
 {
-    std::string erro(":IRC.srv.ma 442 TOPIC :You do not belong to this channel !!\r\n");
+    std::string erro(":IRC.srv.ma 442 " + cmd + " :You do not belong to this channel !!\r\n");
     send(client_socket, erro.c_str(), erro.length() , 0);
 }
 
@@ -155,14 +155,14 @@ void Server::topic_cmd(int client_socket, std::string buffer)
     size_t pos = 0;
     if (buffer.empty() || buffer == ":")
     {
-        call_ERR_NEEDMOREPARAMS(client_socket); // [TOPIC]  => [TOPIC :]
+        call_ERR_NEEDMOREPARAMS(client_socket, "TOPIC"); // [TOPIC]  => [TOPIC :]
         return ;
     }
     std::string channel_name = buffer.substr(0, buffer.find(' '));
     buffer.erase(0, (pos = buffer.find(' ')) ==  buffer.npos ? buffer.npos : pos  + 1); // juste chnge it later
     if (check_if_on_channel(client_socket, channel_name) == 1)
     {
-        call_ERR_NOTONCHANNEL(client_socket);
+        call_ERR_NOTONCHANNEL(client_socket, "TOPIC");
         return ;
     }
     if (buffer.empty())
