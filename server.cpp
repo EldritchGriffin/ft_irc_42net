@@ -197,8 +197,9 @@ void Server::kick_cmd(int client_socket, std::string buffer)
                 {
                     if(it2->get_nickname() == user)
                     {
-                        std::string msg = ":" + this->get_srv_ip() + " KICK " + ch + " " + user + " :Kicked by " + client_caller.get_nickname() + "\r\n";
-                        send(it2->get_socket(), msg.c_str(), msg.length(), 0);
+                        std::string msg = ":" + client_caller.get_nickname() + " KICK " + ch + " " + user + " :" + reason + "\r\n";
+                        it->send_message(msg, it2->get_socket());
+                        it->kick_user(it2->get_nickname());
                         return;
                     }
                 }
@@ -449,9 +450,13 @@ void Server::handle_input(int client_socket)
     {
         this->msg(client_socket, buffer);
     }
+    else if(command == "PONG")
+    {
+        std::string message = "PONG " + buffer + "\r\n";
+        send(client_socket, message.c_str(), message.length(), 0);
+    }
     else
     {// absela
-        // std::string msg = std::string(ERR_UNKNOWNCOMMAND) + " " + command + " :Unknown command\r\n";
         std::string msg = "421 ERR_UNKNOWNCOMMAND <" + command +"> :Unknown command\r\n";
         send(client_socket, msg.c_str(), msg.length(), 0);
     }
