@@ -13,7 +13,7 @@ void sendUserList(const std::string& channel, int client_socket, Server& server)
         if (it->get_name() == channel) {
             std::vector<Client>& users = it->get_users();
             for (std::vector<Client>::iterator it2 = users.begin(); it2 != users.end(); ++it2) {
-                if(it->check_if_user_exist_in_channel(it2->get_nickname()) == 1 || it->check_if_user_exist_in_channel(it2->get_nickname()) == 2)
+                if(it->search_client_in_channel(it2->get_nickname()) == 1 || it->search_client_in_channel(it2->get_nickname()) == 2)
                     userList += "@" + it2->get_nickname() + " ";
                 else
                     userList += it2->get_nickname() + " ";
