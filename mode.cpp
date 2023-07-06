@@ -103,7 +103,7 @@ void    Channel::update_invite_mode(Client client_socket, std::string mode)
 
 void    callUNKNOWNMODE(int client_socket, std::string flg)
 {
-    std::string erro(":IRC.srv.ma 472 MODE :is unknown mode char to me for " + flg + "\r\n");
+    std::string erro(":IRC.srv.ma 472 " + flg +" :is unknown mode char to me for\r\n");
     send(client_socket , erro.c_str(), erro.length() , 0);
 }
 
@@ -138,123 +138,55 @@ std::vector<std::string> split(std::string buffer)
     return result;
 }
 
-// flags check_flags(std::vector<std::string> arg,int client_socket)
-// {
-//     flags flg;
-//     for(std::vector<std::string>::iterator it = arg.begin(); it != arg.end(); ++it)
-//     {
-//         if(it->at(0) == '+')
-//             {
-//                 for(size_t i = 0; i < it->length();i++)
-//                 {
-//                     if(it->at(i) == 'i')
-//                         flg.i = 1;
-//                     else if(it->at(i) == 't')
-//                         flg.t = 1;
-//                     else if(it->at(i) == 'l')
-//                         flg.l = 1;
-//                     else if(it->at(i) == 'k')
-//                         flg.k = 1;
-//                     else if(it->at(i) == 'o')
-//                         flg.o = 1;
-//                     else
-//                         callUNKNOWNMODE(client_socket, *it);
-//                 }
-//             }
-//         else if (it->at(0) == '-')
-//             {
-//                 for(size_t i=0;i<it->length();i++)
-//                 {
-//                     if(it->at(i) == 'i')
-//                         flg.i = 2;
-//                     else if(it->at(i) == 't')
-//                         flg.t = 2;
-//                     else if(it->at(i) == 'l')
-//                         flg.l = 2;
-//                     else if(it->at(i) == 'k')
-//                         flg.k = 2;
-//                     else if(it->at(i) == 'o')
-//                         flg.o = 2;
-//                     else
-//                         callUNKNOWNMODE(client_socket, *it);
-//                 }
-//             }
-//     }
-//     return flg;
-// }
-
-// flags init_flag(int client_socket ,std::string mode, std::vector<std::string> param)
-// {
-//     flags tt;
-//     int x=0;
-//     if(mode[0] == '+')
-//     {
-//         for(size_t i = 0; i < mode.length();i++)
-//         {
-//             if(mode[i] == 'i')
-//                 tt.i = 1;
-//             else if(mode[i] == 't')
-//                 tt.t = 1;
-//             else if(mode[i] == 'l' && tt.l != 1)
-//                 {
-//                     tt.l = 1;
-//                     tt.param_l = x;
-//                     x++;
-//                 }
-//             else if(mode[i] == 'k' && tt.k != 1)
-//                 {
-//                     tt.k = 1;
-//                     tt.param_k = x;
-//                     x++;
-//                 }
-//             else if(mode[i] == 'o' && tt.o != 1)
-//                 {
-//                     tt.o = 1;
-//                     tt.param_o = x;
-//                     x++;
-//                 }
-//             else
-//                 callUNKNOWNMODE(client_socket, mode);
-//         }
-//     }
-//     else if (mode[0] == '-')
-//     {
-//         for(size_t i=0;i<mode.length();i++)
-//         {
-//             if(mode[i] == 'i')
-//                 tt.i = 2;
-//             else if(mode[i] == 't')
-//                 tt.t = 2;
-//             else if(mode[i] == 'l')
-//                 tt.l = 2;
-//             else if(mode[i] == 'k' && tt.k != 2)
-//             {
-//                 tt.k = 2;
-//                 tt.param_k = x;
-//                 x++;
-//             }
-//             else if(mode[i] == 'o' && tt.o != 2)
-//             {
-//                 tt.o = 2;
-//                 tt.param_o = x;
-//                 x++;
-//             }
-//             else
-//                 callUNKNOWNMODE(client_socket, mode);
-//         }
-//     }
-//     return tt;
-// }
-// handle ERR_NOSUCHCHANNEL in case false channel;
-
-void    mode_operator(int client_socket, std::string channel_name, std::string mode, std::string arg)
+void    mode_operator(int client_socket, std::string channel_name, std::string mode, std::string arg,Server * srv)
 {
-    (void)client_socket;
-    (void)channel_name;
-    (void)mode;
-    (void)arg;
-    std::cout << "mode " + mode + " with parameter " + arg << std::endl;
+    std::vector<Channel> &channels = srv->get_channels();
+    if(mode == "+o")
+    {
+        for(std::vector<Channel>::iterator it = channels.begin(); it != channels.end(); ++it)
+        {
+            if(it->get_name() == channel_name)
+            {
+                for(std::vector<Client>::iterator it2 = it->get_users().begin(); it2 != it->get_users().end(); ++it2)
+                {
+                    if(it2->get_nickname() == arg)
+                    {
+                        it->add_operator(*it2);
+                        std::string msg(":IRC.srv.ma 381 MODE : You are now channel operator\r\n");
+                        send(it2->get_socket() , msg.c_str(), msg.length() , 0);
+                        return ;
+                    }
+                }
+                return ;
+            }
+        }
+        std::string erro(":IRC.srv.ma 442 MODE : Channel not found !!\r\n");
+        send(client_socket , erro.c_str(), erro.length() , 0);
+    }
+    else if(mode == "-o")
+    {
+        for(std::vector<Channel>::iterator it = channels.begin(); it != channels.end(); ++it)
+        {
+            if(it->get_name() == channel_name)
+            {
+                for(std::vector<Client>::iterator it2 = it->get_users().begin(); it2 != it->get_users().end(); ++it2)
+                {
+                    if(it2->get_nickname() == arg)
+                    {
+                        it->remove_operator(*it2);
+                        std::string msg(":IRC.srv.ma 381 MODE : You are no longer channel operator\r\n");
+                        send(it2->get_socket() , msg.c_str(), msg.length() , 0);
+                        return ;
+                    }
+                }
+                return ;
+            }
+        }
+        std::string erro(":IRC.srv.ma 442 MODE : Channel not found !!\r\n");
+        send(client_socket , erro.c_str(), erro.length() , 0);
+    }
 }
+
 
 void    mode_key(int client_socket, std::string channel_name, std::string mode, std::string arg)
 {
@@ -355,8 +287,7 @@ void Server::mode_flag(int client_socket, std::string buffer)
                     call_ERR_NEEDMOREPARAMS(client_socket,"MODE"); // update it for the right message
                 else
                 {
-
-                    mode_operator(client_socket, channel_name, option_param, arg[0]);
+                    mode_operator(client_socket, channel_name, option_param, arg[0], this);
                     arg.erase(arg.begin());
                 }
             }

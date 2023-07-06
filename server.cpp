@@ -187,16 +187,17 @@ void Server::kick_cmd(int client_socket, std::string buffer)
         send(client_socket, msg.c_str(), msg.length(), 0);
         return;
     }
-     for(std::vector<Channel>::iterator it = this->channels.begin(); it != this->channels.end(); ++it)
+    for(std::vector<Channel>::iterator it = this->channels.begin(); it != this->channels.end(); ++it)
     {
         if(it->get_name() == ch)
         {
-            if(it->get_admin().get_nickname() == client_caller.get_nickname())
+            if(it->search_client_in_channel(client_socket) == 1 || it->search_client_in_channel(client_socket) == 2)
             {
                 for(std::vector<Client>::iterator it2 = it->get_users().begin(); it2 != it->get_users().end(); ++it2)
                 {
                     if(it2->get_nickname() == user)
                     {
+                        it->kick_user(user);
                         std::string msg = ":" + this->get_srv_ip() + " KICK " + ch + " " + user + " :Kicked by " + client_caller.get_nickname() + "\r\n";
                         send(it2->get_socket(), msg.c_str(), msg.length(), 0);
                         return;
@@ -405,9 +406,9 @@ void Server::handle_input(int client_socket)
         //+lio 100 heheh
         this->mode_flag(client_socket, buffer);
     }
-    else if(command == "LIST")
+    else if(command == "LIST")//absela
     {
-        this->list_cmd(client_socket, buffer);
+        this->list_cmd(client_socket, buffer);// need rework list and list #channel
     }
     else if (command == "KILL") // absela
     {
@@ -448,6 +449,10 @@ void Server::handle_input(int client_socket)
     else if(command == "MSG" || command == "PRIVMSG") // scayho
     {
         this->msg(client_socket, buffer);
+    }
+    else if (command == "QUIT")
+    {
+        close(client_socket);// we need erase client from all here 
     }
     else
     {// absela

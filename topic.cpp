@@ -6,15 +6,15 @@ int Channel::search_client_in_channel(int   client_socket)
 {
     if (admin.get_socket() == client_socket)
         return (1);
-    for(std::vector<Client>::iterator ch = users.begin(); ch != users.end(); ch++)
-    {
-        if (ch->get_socket() == client_socket)
-            return (3);
-    }
     for(std::vector<Client>::iterator ch = operators.begin(); ch != operators.end(); ch++)
     {
         if (ch->get_socket() == client_socket)
             return (2);
+    }
+    for(std::vector<Client>::iterator ch = users.begin(); ch != users.end(); ch++)
+    {
+        if (ch->get_socket() == client_socket)
+            return (3);
     }
     return (0);
 }

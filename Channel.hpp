@@ -4,6 +4,7 @@
 #include <vector>
 #include <map>
 #include <iostream>
+#include "server.hpp"
 #include "Client.hpp"
 
 class Client;
@@ -31,6 +32,7 @@ class Channel{
         void set_admin(Client admin);
         void set_password(std::string password);
         void set_users(std::vector<Client> users);
+
 
         std::string get_name() const;
         int get_topic_flag() const;
