@@ -11,6 +11,10 @@ Channel::Channel(std::string name, std::string topic)
     this->topic = topic;
     this->password = "";
     this->topic_changers_flag = 0;
+    topic_changers_flag = 0;
+    invite_changers_flag = 0;
+    limit_changers_flag = 0;
+    key_changers_flag = 0;
 }
 
 Channel::~Channel()
