@@ -237,7 +237,7 @@ void Server::mode_flag(int client_socket, std::string buffer)
                 if (ch->get_key_flag())
                 {
                     options += "k";
-                    arguments += ch->get_key_value() + " ";
+                    arguments += ch->get_password() + " ";
                 }
                 if (ch->get_limit_flag())
                 {
