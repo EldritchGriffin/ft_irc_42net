@@ -31,6 +31,8 @@ class Client
     private:
         std::string nickname;
         std::string username;
+        std::string hostname;
+        std::string servername;
         std::string realname;
         
         int socket;
@@ -52,12 +54,16 @@ class Client
         void set_pass_state(int state);
         void set_nick_state(int state);
         void set_user_state(int state);
+        void set_hostname(std::string hostname);
+        void set_servername(std::string servername);
 
         int get_socket() const;
 
         std::string get_nickname() const;
         std::string get_username() const;
         std::string get_realname() const;
+        std::string get_hostname() const;
+        std::string get_servername() const;
 
         int get_pass_state() const;
         int get_grade() const;

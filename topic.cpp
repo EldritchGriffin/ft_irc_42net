@@ -47,7 +47,7 @@ void    Server::get_channel_topic(std::string channel_name, int client_socket)
             {
                 std::cout << " the channel :" + channel_name << "'s topic flag is :" << ch->get_topic_flag() << std::endl;
                 std::string message_sender = clients[client_socket].get_nickname();
-                std::string msg = ":"+ this->get_srv_ip() +" " + RPL_TOPIC + " " + message_sender + " #" + channel_name + " :" + ch->get_topic() + "\r\n";
+                std::string msg = ":"+ this->get_srv_ip() +" " + RPL_TOPIC + " " + message_sender + " " + channel_name + " :" + ch->get_topic() + "\r\n";
                 send(client_socket, (msg).c_str(), msg.length(), 0);
             }
             return;
