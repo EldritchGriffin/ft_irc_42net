@@ -4,6 +4,31 @@
 #include "Tools.hpp"
 #include "numeric_replies.hpp"
 
+void sendUserList(const std::string& channel, int client_socket, Server& server) {
+    std::vector<Channel>& channels = server.get_channels();
+    std::map<int, Client>& clients = server.get_clients();
+
+    std::string userList = "= " + channel + " :";
+    for (std::vector<Channel>::iterator it = channels.begin(); it != channels.end(); ++it) {
+        if (it->get_name() == channel) {
+            std::vector<Client>& users = it->get_users();
+            for (std::vector<Client>::iterator it2 = users.begin(); it2 != users.end(); ++it2) {
+                if(it->search_client_in_channel(it2->get_nickname()) == 1 || it->search_client_in_channel(it2->get_nickname()) == 2)
+                    userList += "@" + it2->get_nickname() + " ";
+                else
+                    userList += it2->get_nickname() + " ";
+            }
+            break;
+        }
+    }
+
+    std::string message = ":" + server.get_srv_ip() + " " + RPL_NAMREPLY + " " + clients[client_socket].get_nickname() + " " + userList + "\r\n";
+    send(client_socket, message.c_str(), message.length(), 0);
+
+    message = ":" + server.get_srv_ip() + " " + RPL_ENDOFNAMES + " " + clients[client_socket].get_nickname() + " " + channel + " :End of NAMES list\r\n";
+    send(client_socket, message.c_str(), message.length(), 0);
+}
+
 void    create_channel(int client_socket, std::string channel_name, std::string key, Server &server)
 {
     std::map<int, Client> &clients = server.get_clients();
@@ -15,34 +40,31 @@ void    create_channel(int client_socket, std::string channel_name, std::string 
     new_channel.set_password(key);
     new_channel.add_user(client_caller);
     channels.push_back(new_channel);
-    // server.set_channels(channels);
+    std::string message = ":" +  client_caller.get_nickname() + " JOIN " + channel_name + "\r\n";
+    send(client_socket, message.c_str(), message.length(), 0);
+    sendUserList(channel_name, client_socket, server);
 }
 
-void join_channel(int client_socket, std::string channel_name, std::string key, Server &server)
-{
-    std::map<int, Client> &clients = server.get_clients();
-    std::vector<Channel> &channels = server.get_channels();
-
+void join_channel(int client_socket, std::string channel_name, std::string key, Server& server) {
+    std::map<int, Client>& clients = server.get_clients();
+    std::vector<Channel>& channels = server.get_channels();
 
     Client client_caller = clients[client_socket];
-    for(std::vector<Channel>::iterator it = channels.begin(); it != channels.end(); ++it)
-    {
-        if(it->get_name() == channel_name)
-        {
-            if (it->get_password() == key)
-            {
-                std::vector<Client> &users = it->get_users();
-                users.push_back(client_caller);
-                std::string message = ":" + server.get_srv_ip() + " " + RPL_TOPIC + " " 
-                + client_caller.get_nickname() + " " + channel_name + " :" + it->get_topic() + "\r\n";
+    for (std::vector<Channel>::iterator it = channels.begin(); it != channels.end(); ++it) {
+        if (it->get_name() == channel_name) {
+            if (it->get_password() == key) {
+                it->add_user(client_caller);
+                std::string message = ":" + client_caller.get_nickname() + " JOIN " + channel_name + "\r\n";
                 send(client_socket, message.c_str(), message.length(), 0);
-                std::cout << client_caller.get_nickname() << " Channel JOINED: " << channel_name << std::endl;
+                message = ":" + server.get_srv_ip() + " " + RPL_TOPIC + " " +
+                                      client_caller.get_nickname() + " " + channel_name + " :" + it->get_topic() + "\r\n";
+                send(client_socket, message.c_str(), message.length(), 0);
+                sendUserList(channel_name, client_socket, server);
                 return;
             }
         }
     }
     create_channel(client_socket, channel_name, key, server);
-    std::cout << client_caller.get_nickname() << " Channel created: " << channel_name << std::endl;
 }
 
 void Server::join_cmd(int client_socket, std::string buffer)
