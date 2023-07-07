@@ -47,8 +47,7 @@ void    Server::get_channel_topic(std::string channel_name, int client_socket)
             {
                 // :dan!d@Clk-830D7DDC TOPIC #v3 :This is a cool channel!!
                 std::string message_sender = clients[client_socket].get_nickname();
-                // std::string msg = ":"+ this->get_srv_ip() +" " + RPL_TOPIC + " " + message_sender + " #" + channel_name + " :" + ch->get_topic() + "\r\n";
-                std::string msg = ":"+ message_sender + "!" + message_sender[0] + "@" + get_srv_ip() + " TOPIC " + channel_name + " :" +  ch->get_topic() + "\r\n";
+                std::string msg = ":"+ this->get_srv_ip() +" " + RPL_TOPIC + " " + message_sender + " " + channel_name + " :" + ch->get_topic() + "\r\n";
                 send(client_socket, (msg).c_str(), msg.length(), 0);
             }
             return;
