@@ -40,26 +40,30 @@ void    Server::get_channel_topic(std::string channel_name, int client_socket)
 {//:server_ip 332 dan #v4 :Coolest topic
     for(std::vector<Channel>::iterator ch = channels.begin(); ch != channels.end(); ch++)
     {
-            int client_existens = ch->search_client_in_channel(client_socket);
+        int client_existens = ch->search_client_in_channel(client_socket);
         if (ch->get_name() == channel_name) //TOPIC #test 
         {
             if (client_existens) // update in case the channel has no topic
             {
-                std::cout << " the channel :" + channel_name << "'s topic flag is :" << ch->get_topic_flag() << std::endl;
+                // :dan!d@Clk-830D7DDC TOPIC #v3 :This is a cool channel!!
                 std::string message_sender = clients[client_socket].get_nickname();
-                std::string msg = ":"+ this->get_srv_ip() +" " + RPL_TOPIC + " " + message_sender + " #" + channel_name + " :" + ch->get_topic() + "\r\n";
+                // std::string msg = ":"+ this->get_srv_ip() +" " + RPL_TOPIC + " " + message_sender + " #" + channel_name + " :" + ch->get_topic() + "\r\n";
+                std::string msg = ":"+ message_sender + "!" + message_sender[0] + "@" + get_srv_ip() + " TOPIC " + channel_name + " :" +  ch->get_topic() + "\r\n";
                 send(client_socket, (msg).c_str(), msg.length(), 0);
             }
             return;
         }
     }
-    send(client_socket, "no channel\r\n", 12, 0);
+    std::string flagu = ERR_NOSUCHCHANNEL;
+    std::string erro(":IRC.srv.ma " + flagu + " " + "TOPIC" + " :unknown channel\r\n");
+    send(client_socket, erro.c_str(), erro.length() , 0);
     //error channel not found
 }
 
 void    Server::call_ERR_CHANOPRIVSNEEDED(int client_socket, std::string channel_name, std::string cmd)
 {
-    std::string erro(":IRC.srv.ma 482 " + cmd + " : You are a common user of this channel {" + channel_name +"} to push your privilege !!\r\n");
+    std::string flagu = ERR_NEEDMOREPARAMS;
+    std::string erro = ":IRC.srv.ma " + flagu + " " + cmd + " : You are a common user of this channel {" + channel_name +"} to push your privilege !!\r\n";
     send(client_socket, erro.c_str(), erro.length() , 0);
 }
 
@@ -99,7 +103,8 @@ std::string Server::get_client_nick_by_socket(int client_socket)
 
 void Server::call_ERR_NEEDMOREPARAMS(int client_socket,  std::string cmd)
 {
-    std::string erro(":IRC.srv.ma 472 " + cmd + " :Not enough parameters\r\n");
+    std::string flagu = ERR_NEEDMOREPARAMS;
+    std::string erro(":IRC.srv.ma " + flagu + " " + cmd + " :Not enough parameters\r\n");
     send(client_socket, erro.c_str(), erro.length() , 0);
 }
 

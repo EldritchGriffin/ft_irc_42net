@@ -1,6 +1,7 @@
 #include "server.hpp"
 #include "Channel.hpp"
 #include "Client.hpp"
+#include "numeric_replies.hpp"
 
 typedef struct flags
 {
@@ -72,10 +73,12 @@ void    Channel::update_invite_mode(Client client_socket, std::string mode)
     int droit = search_client_in_channel(client_socket.get_nickname());
     if (droit != 1 && droit != 2)
     {
-        std::string erro(":IRC.srv.ma 442 MODE :You do not have permission to update the mode +-i !!\r\n");
+        std::string flagu = ERR_CHANOPRIVSNEEDED;
+        std::string erro(":IRC.srv.ma " + flagu + " MODE :You do not have permission to update the mode +-i !!\r\n");
         if (droit != 3)
         {
-            std::string erro(":IRC.srv.ma 442 MODE :You do not belong to this channel !!\r\n");
+            flagu = ERR_NOTONCHANNEL;
+            std::string erro(":IRC.srv.ma " + flagu + " MODE :You do not belong to this channel !!\r\n");
             send(client_socket.get_socket(), erro.c_str(), erro.length() , 0);
         }
         else
@@ -121,7 +124,8 @@ void    Server::mode_invite(int client_socket, std::string channel_name, std::st
             return ;
         }
     }
-    std::string erro(":IRC.srv.ma 442 MODE : Channel not found !!\r\n");
+    std::string flagu = ERR_NOSUCHCHANNEL;
+    std::string erro(":IRC.srv.ma " + flagu + " MODE : Channel not found !!\r\n");
     send(client_socket , erro.c_str(), erro.length() , 0);
 }
 
@@ -190,6 +194,7 @@ void    mode_operator(int client_socket, std::string channel_name, std::string m
 
 void    mode_key(int client_socket, std::string channel_name, std::string mode, std::string arg)
 {
+    // check privileg
     (void)client_socket;
     (void)channel_name;
     (void)mode;
