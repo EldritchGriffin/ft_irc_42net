@@ -4,6 +4,8 @@
 
 void Server::auth_client(int client_socket)
 {
+    if(this->clients[client_socket].get_grade() == AUTHENTICATED)
+        return;
     if(this->clients[client_socket].get_pass_state() == PASS
     && this->clients[client_socket].get_nick_state() == NICK
     && this->clients[client_socket].get_user_state() == USER)
@@ -21,12 +23,14 @@ void Server::pass_cmd(int client_socket, std::string buffer)
 {
     if(this->clients[client_socket].get_pass_state() == PASS)
     {
-        // send(client_socket, "Authenticated, PASS REFUSED\n", 28, 0);
+        std::string msg = ":" + this->get_srv_ip() + " " + ERR_ALREADYREGISTRED + " " " :Unauthorized command (already registered)\r\n";
+        send(client_socket, msg.c_str(), msg.length(), 0);
         return;
     }
     if(buffer.empty() || buffer != this->srv_password)
     {
-        // send(client_socket, "ERR PASS\n", 9, 0);
+        std::string msg = ":" + this->get_srv_ip() + " " + ERR_PASSWDMISMATCH + " " " :Password incorrect\r\n";
+        send(client_socket, msg.c_str(), msg.length(), 0);
         return;
     }
     this->clients[client_socket].set_pass_state(PASS);
@@ -35,15 +39,25 @@ void Server::pass_cmd(int client_socket, std::string buffer)
 
 void Server::nick_cmd(int client_socket, std::string buffer)
 {
-    //TODO check if nickname is already taken and if nickname is valid;
-    if(buffer.empty())
+    if(buffer.empty() || buffer == ":")
     {
-        // send(client_socket, "ERR NICK\n", 9, 0);
+        std::string msg = ":" + this->get_srv_ip() + " " + ERR_NONICKNAMEGIVEN + " * " + ":No nickname given\r\n";
+        send(client_socket, msg.c_str(), msg.length(), 0);
         return;
     }
+    for(std::map<int, Client>::iterator it = this->clients.begin(); it != this->clients.end(); it++)
+    {
+        if(it->second.get_nickname() == buffer)
+        {
+            std::string msg = ":" + this->get_srv_ip() + " " + ERR_NICKNAMEINUSE + " " + buffer + ":Nickname is already in use\r\n";
+            send(client_socket, msg.c_str(), msg.length(), 0);
+            return;
+        }
+    }
+    std::string msg = ":" + this->clients[client_socket].get_nickname() + " NICK :" + buffer + "\r\n";
+    send(client_socket, msg.c_str(), msg.length(), 0);
     this->clients[client_socket].set_nickname(buffer);
     this->clients[client_socket].set_nick_state(NICK);
-    // send(client_socket, "OK\n", 3, 0);
     auth_client(client_socket);
 }
 

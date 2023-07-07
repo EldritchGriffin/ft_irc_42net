@@ -49,6 +49,7 @@ class Server
         void kill_cmd(int client_socket, std::string buffer);
         void mode_flag(int client_socket, std::string buffer);
         void list_cmd(int client_socket,std::string buffer);
+        void quit_cmd(int client_socket);
         void invite_user(std::string user);
         void invite_cmd(int client_socket, std::string buffer);
         void msg(int client_socket, std::string buffer);

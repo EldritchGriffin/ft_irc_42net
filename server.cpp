@@ -129,7 +129,7 @@ std::string Server::client_request(int client_socket)
     else if (bytes_read == 0)
     {
         std::cout << "Client disconnected." << std::endl;
-        close(client_socket);
+        this->quit_cmd(client_socket);
         return std::string();
     }
     return (casa_rm(std::string(buffer)));//TODO rename casa_rm
@@ -173,61 +173,6 @@ void Server::msg(int client_socket, std::string buffer)
     return;
 }
 
-void Server::kick_cmd(int client_socket, std::string buffer)
-{
-    Client client_caller = clients[client_socket];
-    std::string ch = buffer.substr(0,buffer.find(" "));
-    buffer.erase(0,ch.length()+1);
-    std::string user = buffer.substr(0,buffer.find(" "));
-    buffer.erase(0,user.length()+1);
-    std::string reason = buffer.substr(0);
-    if (ch.empty() && user.empty() && reason.empty())
-    {
-        std::string msg = "461 ERR_NEEDMOREPARAMS <" + buffer +">:Not enough parameters\r\n";
-        send(client_socket, msg.c_str(), msg.length(), 0);
-        return;
-    }
-    for(std::vector<Channel>::iterator it = this->channels.begin(); it != this->channels.end(); ++it)
-    {
-        if(it->get_name() == ch)
-        {
-            if(it->search_client_in_channel(client_socket) == 1 || it->search_client_in_channel(client_socket) == 2)
-            {
-                for(std::vector<Client>::iterator it2 = it->get_users().begin(); it2 != it->get_users().end(); ++it2)
-                {
-                    if(it2->get_nickname() == user)
-                    {
-                        std::string msg = ":" + client_caller.get_nickname() + " KICK " + ch + " " + user + " :" + reason + "\r\n";
-                        it->send_message(msg, it2->get_socket());
-                        it->kick_user(it2->get_nickname());
-                        return;
-                    }
-                }
-                std::string msg = ":" + this->get_srv_ip() + " 441 " + client_caller.get_nickname() + " " + user + " :They aren't on that channel\r\n";
-                send(client_socket, msg.c_str(), msg.length(), 0);
-                return;
-            }
-            // std::string msg = ":" + this->get_srv_ip() + " 482 " + client_caller.get_nickname() + " :You're not channel operator\r\n";
-            std::string msg ="482 ERR_CHANOPRIVSNEEDED <" + client_caller.get_nickname() + ">:You're not channel operator\r\n";
-            send(client_socket, msg.c_str(), msg.length(), 0);
-            return;
-        }
-    }
-    // std::string msg = ":" + this->get_srv_ip() + " 403 " + client_caller.get_nickname() + " " + ch + " :No such channel\r\n";
-    std::string msg ="403 ERR_NOSUCHCHANNEL <" + ch + "> :No such channel\r\n";
-    send(client_socket, msg.c_str(), msg.length(), 0);
-}
-
-// void Channel::invite_user(std::string user)
-// {
-//     for(std::vector<Client>::iterator it = this->users.begin(); it != this->users.end(); ++it)
-//     {
-//         if(it->get_nickname() == user)
-//         {
-//             return;
-//         }
-//     }
-// }
 void Channel::add_invited_user(Client &user, std::string cmd, int client_socket)
 {
     invited.push_back(user);
@@ -332,7 +277,6 @@ void Server::part_cmd(int client_socket,std::string buffer){
         if(it->get_name() == ch)
         {
             it->remove_user(this->clients[client_socket]);
-            return;
         }
     }
 }
@@ -452,7 +396,7 @@ void Server::handle_input(int client_socket)
     }
     else if (command == "QUIT")
     {
-        close(client_socket);
+        this->quit_cmd(client_socket);
     }// we need erase client from all here 
     else if(command == "PONG")
     {
@@ -588,8 +532,6 @@ std::string Server::get_srv_ip() const
     freeifaddrs(ifaddr);
     return (ip);
 }
-
-
 //TODO modify the messages sent to the users when executing authentification commands;
 //TODO find a way to mark a user as authentificated after entering all auth commands;
 //TODO remove the testing msg command;

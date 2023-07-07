@@ -3,17 +3,8 @@
 #include "Client.hpp"
 #include "numeric_replies.hpp"
 
-typedef struct flags
-{
-    int t;
-    int i;
-    int l;
-    int k;
-    int o;
-    int param_l;
-    int param_k;
-    int param_o;
-}flags;
+#include "numeric_replies.hpp"
+
 
 
 void    Channel::update_topic_mode(Client client_socket, std::string mode) // TODO reread the options if that works as needed && change the replay numbers
@@ -113,7 +104,7 @@ void    callUNKNOWNMODE(int client_socket, std::string flg)
 
 void    Server::mode_invite(int client_socket, std::string channel_name, std::string mode)
 {
-        std::vector<Channel> &Channels_copy = get_channels();
+    std::vector<Channel> &Channels_copy = get_channels();
     // Channel *target_channel;
     for (std::vector<Channel>::iterator p = Channels_copy.begin(); p != Channels_copy.end();p++)
     {
@@ -213,6 +204,13 @@ void    mode_limit(int client_socket, std::string channel_name, std::string mode
 
 void Server::mode_flag(int client_socket, std::string buffer)
 {
+    Client client_caller = clients[client_socket];
+    if (client_caller.get_grade() != AUTHENTICATED)
+    {
+        std::string msg = ":" + get_srv_ip() + std::string(ERR_NOTREGISTERED) + " " + client_caller.get_nickname() +" :You have not registered\r\n";
+        send(client_socket, msg.c_str(), msg.length(), 0);
+        return;
+    }
     std::vector<std::string> arg = split(buffer);
     if (arg.empty())
     {
