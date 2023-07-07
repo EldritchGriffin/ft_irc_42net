@@ -3,6 +3,7 @@
 #include "Client.hpp"
 #include "numeric_replies.hpp"
 
+#include "numeric_replies.hpp"
 
 
 
@@ -63,10 +64,12 @@ void    Channel::update_invite_mode(Client client_socket, std::string mode)
     int droit = search_client_in_channel(client_socket.get_nickname());
     if (droit != 1 && droit != 2)
     {
-        std::string erro(":IRC.srv.ma 442 MODE :You do not have permission to update the mode +-i !!\r\n");
+        std::string flagu = ERR_CHANOPRIVSNEEDED;
+        std::string erro(":IRC.srv.ma " + flagu + " MODE :You do not have permission to update the mode +-i !!\r\n");
         if (droit != 3)
         {
-            std::string erro(":IRC.srv.ma 442 MODE :You do not belong to this channel !!\r\n");
+            flagu = ERR_NOTONCHANNEL;
+            std::string erro(":IRC.srv.ma " + flagu + " MODE :You do not belong to this channel !!\r\n");
             send(client_socket.get_socket(), erro.c_str(), erro.length() , 0);
         }
         else
@@ -112,7 +115,8 @@ void    Server::mode_invite(int client_socket, std::string channel_name, std::st
             return ;
         }
     }
-    std::string erro(":IRC.srv.ma 442 MODE : Channel not found !!\r\n");
+    std::string flagu = ERR_NOSUCHCHANNEL;
+    std::string erro(":IRC.srv.ma " + flagu + " MODE : Channel not found !!\r\n");
     send(client_socket , erro.c_str(), erro.length() , 0);
 }
 
@@ -181,6 +185,7 @@ void    mode_operator(int client_socket, std::string channel_name, std::string m
 
 void    mode_key(int client_socket, std::string channel_name, std::string mode, std::string arg)
 {
+    // check privileg
     (void)client_socket;
     (void)channel_name;
     (void)mode;
@@ -219,7 +224,39 @@ void Server::mode_flag(int client_socket, std::string buffer)
     // arg.erase(arg.begin());
     if (arg.empty())
     {
-        call_ERR_NEEDMOREPARAMS(client_socket,"MODE");
+        for(std::vector<Channel>::iterator ch = channels.begin(); ch != channels.end(); ch++)
+        {
+            if (channel_name == ch->get_name())
+            {
+                std::string options = "+";
+                std::string arguments;
+                if (ch->get_invite_flag())
+                {
+
+                    options += "i";
+                }
+                if (ch->get_key_flag())
+                {
+                    options += "k";
+                    arguments += ch->get_key_value() + " ";
+                }
+                if (ch->get_limit_flag())
+                {
+                    options += "l";
+                    arguments += ch->get_limit_value() + " ";
+                }
+                if (ch->get_topic_flag())
+                {
+                    options += "t";
+                }
+                std::string msg = ":IRC.srv.ma " + std::string(RPL_CHANNELMODEIS) + " MODE " + get_client_nick_by_socket(client_socket) + " " + channel_name + " " + options + " " + arguments + "\r\n";
+                send(client_socket , msg.c_str(), msg.length() , 0);
+                return ;
+            }
+        }
+        std::string flagu = ERR_NOSUCHCHANNEL;
+        std::string erro(":IRC.srv.ma " + flagu + " MODE : " + channel_name + " Channel not found !!\r\n");
+        send(client_socket , erro.c_str(), erro.length() , 0);
         return;
     }
     std::string mode = arg[0];
@@ -266,12 +303,13 @@ void Server::mode_flag(int client_socket, std::string buffer)
             option_param = option_sign + mode.at(0);
             if (option_param == "+k" || option_param == "-k") // CHECK IF THERE IS A PARAMETER FOR THE COMMAND
             {
-                if (arg.size() < 1)
+                if (arg.size() < 1 && option_param == "+k")
                     call_ERR_NEEDMOREPARAMS(client_socket,"MODE"); // update it for the right message
                 else
                 {
                     mode_key(client_socket, channel_name, option_param,arg[0]);
-                    arg.erase(arg.begin());
+                    if (option_param == "+k")
+                        arg.erase(arg.begin());
                 }
             }
         }
