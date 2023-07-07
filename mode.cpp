@@ -234,7 +234,6 @@ void Server::mode_flag(int client_socket, std::string buffer)
                 std::string arguments;
                 if (ch->get_invite_flag())
                 {
-
                     options += "i";
                 }
                 if (ch->get_key_flag())
