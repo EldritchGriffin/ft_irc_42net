@@ -332,7 +332,6 @@ void Server::part_cmd(int client_socket,std::string buffer){
         if(it->get_name() == ch)
         {
             it->remove_user(this->clients[client_socket]);
-            return;
         }
     }
 }
@@ -387,6 +386,28 @@ void Server::kill_cmd(int client_socket, std::string buffer)
         }
     }
     send(client_socket, "ERR KILL\n", 9, 0);
+}
+
+void Server::quit_cmd(int client_socket)
+{
+    for(std::map<int,Client>::iterator it = this->clients.begin(); it != this->clients.end(); ++it)
+    {
+        if(it->first == client_socket)
+        {
+            std::string msg = ":" + it->second.get_nickname() + "@" + this->get_srv_ip() + " QUIT :Client Quit\r\n";
+            for(std::vector<Channel>::iterator it1 = this->channels.begin(); it1 != this->channels.end(); ++it1)
+            {
+                if(it1->search_client_in_channel(client_socket) == 1)
+                {
+                    it1->remove_user(it->second);
+                }
+            }
+            send(client_socket, msg.c_str(), msg.length(), 0);
+            close(it->first);
+            clients.erase(it);
+            return;
+        }
+    }
 }
 
 void Server::handle_input(int client_socket)
@@ -452,7 +473,7 @@ void Server::handle_input(int client_socket)
     }
     else if (command == "QUIT")
     {
-        close(client_socket);
+        this->quit_cmd(client_socket);
     }// we need erase client from all here 
     else if(command == "PONG")
     {
