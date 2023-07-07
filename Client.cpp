@@ -96,3 +96,26 @@ void Client::set_grade(int grade)
 {
     this->grade = grade;
 }
+
+void Client::set_hostname(std::string hostname)
+{
+    this->hostname = hostname;
+}
+
+std::string Client::get_servername() const
+{
+    return this->servername;
+}
+
+void Client::set_servername(std::string servername)
+{
+    this->servername = servername;
+}
+
+std::string Client::get_hostname() const
+{
+    return this->hostname;
+}
+
+
+
