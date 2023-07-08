@@ -333,8 +333,12 @@ void Server::mode_flag(int client_socket, std::string buffer)
             option_param = option_sign + mode.at(0);
             if (option_param == "+k" || option_param == "-k") // CHECK IF THERE IS A PARAMETER FOR THE COMMAND
             {
-                if (arg.size() < 1 && option_param == "+k")
-                    call_ERR_NEEDMOREPARAMS(client_socket,"MODE"); // update it for the right message
+                if (arg.size() < 1)
+                {
+                    std::string flagu = ERR_INVALIDMODEPARAM;
+                    std::string erro(":" + this->get_srv_ip() + " " + flagu + " MODE : " + channel_name + " k " + " You must specify a parameter for the key mode !!\r\n");
+                    send(client_socket , erro.c_str(), erro.length() , 0);
+                }
                 else
                 {
                     mode_key(client_socket, channel_name, option_param,arg[0]);
