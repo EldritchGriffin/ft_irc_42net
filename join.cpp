@@ -38,6 +38,11 @@ void    create_channel(int client_socket, std::string channel_name, std::string 
     Channel new_channel(channel_name, "this is a topic");
     new_channel.set_admin(client_caller);
     new_channel.set_password(key);
+    if (key != "")
+    {
+        new_channel
+    }
+    
     new_channel.add_user(client_caller);
     channels.push_back(new_channel);
     std::string message = ":" +  client_caller.get_nickname() + " JOIN " + channel_name + "\r\n";
