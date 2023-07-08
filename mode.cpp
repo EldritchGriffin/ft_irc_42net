@@ -387,7 +387,7 @@ void Server::mode_flag(int client_socket, std::string buffer)
                 }
             }
         }
-        else
+        else if (mode[0] != 'n' && mode[0] != 's')
             callUNKNOWNMODE(client_socket, mode);
         mode.erase(mode.begin());
         i++;
