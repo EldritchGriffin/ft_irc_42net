@@ -116,7 +116,6 @@ void    Server::mode_invite(int client_socket, std::string channel_name, std::st
     send(client_socket , erro.c_str(), erro.length() , 0);
 }
 
-
 std::vector<std::string> split(std::string buffer)
 {
     std::vector<std::string> result;
@@ -188,14 +187,39 @@ void    mode_operator(int client_socket, std::string channel_name, std::string m
 }
 
 
-void    mode_key(int client_socket, std::string channel_name, std::string mode, std::string arg)
+void    Server::mode_key(int client_socket, std::string channel_name, std::string mode, std::string arg)
 {
-    // check privileg
-    (void)client_socket;
-    (void)channel_name;
-    (void)mode;
-    (void)arg;
-    std::cout << "mode " + mode + " with parameter " + arg << std::endl;
+    for(std::vector<Channel>::iterator s = channels.begin(); s != channels.end(); s++)
+    {
+        if (s->get_name() == channel_name)
+        {
+            std::string msg;
+            if ((mode == "+k" && s->get_key_flag()) || (mode == "-k" && s->get_key_flag() == 0))
+                return ;
+            else if (mode == "+k" && s->get_key_flag() == 0)
+            {
+                s->set_key_flag(1);
+                s->set_password(arg);
+                msg = ":" + get_client_nick_by_socket(client_socket) + "!~h@localhost MODE " + s->get_name() + " +k " + arg + "\r\n";
+            }
+            else if (mode == "-k" && s->get_password() == arg)
+            {
+                s->set_key_flag(0);
+                s->set_password("");
+                msg = ":" + get_client_nick_by_socket(client_socket) + "!~h@localhost MODE " + s->get_name() + " -k " + "\r\n";
+            }
+            else if (mode == "-k" && s->get_password() != arg)
+            {
+                std::string erro(":IRC.srv.ma 467 " + s->get_name() + ": " + s->get_name() + " Channel key already set\r\n");
+                send(client_socket , erro.c_str(), erro.length() , 0);
+                return ;
+// #ra Channel key already set
+            }
+            send(client_socket, msg.c_str(), msg.length(), 0);
+            s->send_message(msg, client_socket);
+            return ;
+        }
+    }
 }
 
 void    Server::mode_limit(int client_socket, std::string channel_name, std::string mode, int arg)
@@ -245,9 +269,6 @@ void Server::mode_flag(int client_socket, std::string buffer)
     }
     std::string channel_name = arg[0];
     arg.erase(arg.begin());
-    // std::string mode = arg[0];
-    // flags flg = init_flag(client_socket, mode,arg);
-    // arg.erase(arg.begin());
     if (arg.empty())
     {
         for(std::vector<Channel>::iterator ch = channels.begin(); ch != channels.end(); ch++)
@@ -347,8 +368,7 @@ void Server::mode_flag(int client_socket, std::string buffer)
                 else
                 {
                     mode_key(client_socket, channel_name, option_param,arg[0]);
-                    if (option_param == "+k")
-                        arg.erase(arg.begin());
+                    arg.erase(arg.begin());
                 }
             }
         }
