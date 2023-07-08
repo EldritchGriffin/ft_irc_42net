@@ -135,7 +135,8 @@ void    Server::call_ERR_NOTONCHANNEL(int client_socket, std::string cmd)
 // [TOPIC]  => [TOPIC :]
 // [TOPIC #JAHAD]  => [TOPIC : #JAHAD]
 // [TOPIC #JAHAD trueking]  => [TOPIC : #JAHAD trueking]
-// [TOPIC #JAHAD :true king]  => [TOPIC : #JAHAD :true king]
+// [TOPIC #JAHAD true king]  => [TOPIC : #JAHAD :true king]
+// [TOPIC #JAHAD :true king]  => [TOPIC : #JAHAD ::true king]
 // no multiple targets for TOPIC || spaces are ignored
 
 void    Server::unset_channel_topic(std::string channel_name, int client_socket)
@@ -156,6 +157,7 @@ void    Server::unset_channel_topic(std::string channel_name, int client_socket)
 
 void Server::topic_cmd(int client_socket, std::string buffer)
 {
+    (void)client_socket;
     size_t pos = 0;
     if (buffer.empty() || buffer == ":")
     {
@@ -164,6 +166,16 @@ void Server::topic_cmd(int client_socket, std::string buffer)
     }
     std::string channel_name = buffer.substr(0, buffer.find(' '));
     buffer.erase(0, (pos = buffer.find(' ')) ==  buffer.npos ? buffer.npos : pos  + 1); // juste chnge it later
+    // std::cout << "here mine====" << buffer << std::endl;
+    // if (buffer[0] == ':')
+    //     buffer.erase(buffer.begin());
+    // if (buffer[0] == ':' && buffer.length() > 1)
+    //     buffer.erase(buffer.begin());
+    // std::cout << "here mine====" << buffer << std::endl;
+
+    // if (buffer.find(' ') == std::string::npos)
+    //     buffer = ":" + buffer;
+    std::cout << "yooooooooo >" + buffer << std::endl;
     if (check_if_on_channel(client_socket, channel_name) == 1)
     {
         call_ERR_NOTONCHANNEL(client_socket, "TOPIC");
@@ -173,10 +185,10 @@ void Server::topic_cmd(int client_socket, std::string buffer)
     {
         get_channel_topic(channel_name, client_socket);
     }
-    else if (buffer == "::")
-    {
-        unset_channel_topic(channel_name, client_socket);
-    }
+    // else if (buffer == "::")
+    // {
+    //     unset_channel_topic(channel_name, client_socket);
+    // }
     else
     {
         set_channel_topic(client_socket, channel_name, buffer);

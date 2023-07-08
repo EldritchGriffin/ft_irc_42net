@@ -17,6 +17,46 @@ Channel::Channel(std::string name, std::string topic)
     key_changers_flag = 0;
 }
 
+void Channel::set_invite_flag(int n)
+{
+    invite_changers_flag = n;
+}
+
+void Channel::set_limit_flag(int n)
+{
+    limit_changers_flag = n;
+}
+
+void Channel::set_limit_value(std::string n)
+{
+    limit = n;
+}
+
+void Channel::set_key_flag(int n)
+{
+    key_changers_flag = n;
+}
+
+int Channel::get_invite_flag() const
+{
+    return (invite_changers_flag);
+}
+
+int Channel::get_limit_flag() const
+{
+    return (limit_changers_flag);
+}
+
+std::string Channel::get_limit_value() const
+{
+    return (limit);
+}
+
+int Channel::get_key_flag() const
+{
+    return (key_changers_flag);
+}
+
 Channel::~Channel()
 {
 }
@@ -156,14 +196,3 @@ void Channel::set_users(std::vector<Client> users)
 {
     this->users = users;
 }
-
-
-// Client  &get_client_obj_from_vector(std::vector<Client> &i, int socket_client)
-// {
-//     for(std::vector<Client>::iterator it = i.begin(); it != i.end(); ++it)
-//     {
-//         if (it->get_socket() == socket_client)
-//             return (*it);
-//     }
-
-// }

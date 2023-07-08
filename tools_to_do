@@ -1,4 +1,11 @@
-return a client from a vector using nickname/socket
-return a client from a map using nickname/socket
+// return a client from a vector using nickname/socket
+// return a client from a map using nickname/socket
 
-griffin gad 3adi f join 3lawed limit ERR_CHANNELISFULL 
+// griffin gad hadi f join 3lawed limit ERR_CHANNELISFULL 
+
+// fix the replay message in the TOPIC.cpp
+// fix the replay message in the MODE.cpp
+// fix the replay message in the MSG.cpp
+
+// std::string msg = ":"+ this->get_srv_ip() +" " + RPL_TOPIC + " " + message_sender + " " +
+// channel_name + " :" + ch->get_topic() + "\r\n";

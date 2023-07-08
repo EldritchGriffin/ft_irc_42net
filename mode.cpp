@@ -198,13 +198,34 @@ void    mode_key(int client_socket, std::string channel_name, std::string mode, 
     std::cout << "mode " + mode + " with parameter " + arg << std::endl;
 }
 
-void    mode_limit(int client_socket, std::string channel_name, std::string mode, std::string arg)
+void    Server::mode_limit(int client_socket, std::string channel_name, std::string mode, int arg)
 {
-    (void)client_socket;
-    (void)channel_name;
-    (void)mode;
-    (void)arg;
-    std::cout << "mode " + mode + " with parameter " + arg << std::endl;
+    for(std::vector<Channel>::iterator  chs = channels.begin();chs != channels.end();chs++)
+    {
+        if (chs->get_name() == channel_name)
+        {
+            std::string msg;
+            if (mode == "+l" && (chs->get_limit_flag() == 0 || arg != atoi(chs->get_limit_value().c_str())))
+            {
+                std::string str;
+                std::stringstream ss;  
+                ss << arg;  
+                ss >> str; 
+                chs->set_limit_value(str);
+                chs->set_limit_flag(1);
+                msg = ":" + get_client_nick_by_socket(client_socket) + "!~h@localhost MODE " + chs->get_name() + " +l " + str + "\r\n";
+            }
+            else if (mode == "-l" && chs->get_limit_flag() == 1)
+            {
+                msg = ":" + get_client_nick_by_socket(client_socket) + "!~h@localhost MODE " + chs->get_name() + " -l " + "\r\n";
+                chs->set_limit_value("");
+                chs->set_limit_flag(0);
+            }
+            send(client_socket, msg.c_str(), msg.length(), 0);
+            chs->send_message(msg, client_socket);
+            return ;
+        }
+    }
 }
 
 void Server::mode_flag(int client_socket, std::string buffer)
@@ -237,13 +258,12 @@ void Server::mode_flag(int client_socket, std::string buffer)
                 std::string arguments;
                 if (ch->get_invite_flag())
                 {
-
                     options += "i";
                 }
                 if (ch->get_key_flag())
                 {
                     options += "k";
-                    arguments += ch->get_key_value() + " ";
+                    arguments += ch->get_password() + " ";
                 }
                 if (ch->get_limit_flag())
                 {
@@ -254,13 +274,13 @@ void Server::mode_flag(int client_socket, std::string buffer)
                 {
                     options += "t";
                 }
-                std::string msg = ":IRC.srv.ma " + std::string(RPL_CHANNELMODEIS) + " MODE " + get_client_nick_by_socket(client_socket) + " " + channel_name + " " + options + " " + arguments + "\r\n";
+                std::string msg = ":" + this->get_srv_ip() + " " + std::string(RPL_CHANNELMODEIS) + " MODE " + get_client_nick_by_socket(client_socket) + " " + channel_name + " " + options + " " + arguments + "\r\n";
                 send(client_socket , msg.c_str(), msg.length() , 0);
                 return ;
             }
         }
         std::string flagu = ERR_NOSUCHCHANNEL;
-        std::string erro(":IRC.srv.ma " + flagu + " MODE : " + channel_name + " Channel not found !!\r\n");
+        std::string erro(":" + this->get_srv_ip() + " " + flagu + " MODE : " + channel_name + " Channel not found !!\r\n");
         send(client_socket , erro.c_str(), erro.length() , 0);
         return;
     }
@@ -293,14 +313,24 @@ void Server::mode_flag(int client_socket, std::string buffer)
             option_param = option_sign + mode.at(0);
             if (option_param == "+l" || option_param == "-l") // CHECK IF THERE IS A PARAMETER FOR THE COMMAND
             {
-                if (arg.size() < 1)
-                    call_ERR_NEEDMOREPARAMS(client_socket,"MODE"); // update it for the right message
-                // else if () // check if the numbers are degite
-                //     call_ERR_NEEDMOREPARAMS(client_socket,"MODE"); // update it for the right message
+                if (arg.size() < 1 && option_param == "+l")
+                {
+                    std::string flagu = ERR_INVALIDMODEPARAM;
+                    std::string erro(":" + this->get_srv_ip() + " " + flagu + " MODE : " + channel_name + " l " + " You must specify a parameter for the limit mode !!\r\n");
+                    send(client_socket , erro.c_str(), erro.length() , 0);
+                }
+                else if (atoi(arg[0].c_str()) < 1 && option_param == "+l")
+                {
+                    std::string flagu = ERR_INVALIDMODEPARAM;
+                    std::string erro(":" + this->get_srv_ip() + " " + flagu + " MODE : " + channel_name + " l " + arg[0] + " Invalid limit mode parameter\r\n");
+                    send(client_socket , erro.c_str(), erro.length() , 0);
+
+                } 
                 else
                 {
-                    mode_limit(client_socket, channel_name, option_param, arg[0]);
-                    arg.erase(arg.begin());
+                    mode_limit(client_socket, channel_name, option_param, atoi(arg[0].c_str()));
+                    if (option_param == "+l")
+                        arg.erase(arg.begin());
                 }
             }
         }
@@ -339,41 +369,6 @@ void Server::mode_flag(int client_socket, std::string buffer)
         i++;
     }
 }
-// void Server::mode_flag(int client_socket, std::string buffer)
-// {
-//     std::string channel_name = buffer.substr(0,buffer.find(' '));
-//     buffer.erase(0,buffer.find(' '));
-//     std::string mode = buffer.substr(1,buffer.find(' ')+3);
-//     buffer.erase(0,buffer.find(' ')+2);
-
-//     // if (buffer.empty())
-//     // {
-//     //     call_ERR_NEEDMOREPARAMS(client_socket);
-//     //     return;
-//     // }
-
-//     std::cout << mode << std::endl;
-//     if (mode == "-i" || mode == "+i")
-//     {
-        // mode_invite(client_socket, channel_name, mode);
-//     }
-//     else if (mode == "-t" || mode == "+t")
-//     {
-//         mode_topic(client_socket, channel_name, mode);
-//     }
-//     else if (mode == "-k" || mode == "+k")
-//     {
-
-//     }
-//     else if (mode == "-o" || mode == "+o")
-//     {
-
-//     }
-//     else if (mode == "-l" || mode == "+l")
-//     {
-
-//     }
-// }
 
 // i t k ol
 //   Parameters: <channel> {[+|-]|o|p|s|i|t|n|b|v} [<limit>] [<user>]
