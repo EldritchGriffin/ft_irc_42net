@@ -38,8 +38,9 @@ void Server::kick_cmd(int client_socket, std::string buffer)
                 {
                     if(it2->get_nickname() == user)
                     {
-                        std::string msg = ":" + client_caller.get_nickname() + "!" + client_caller.get_username() + "@" + client_caller.get_hostname() + " KICK " + it->get_name() + " " + user + " :" + reason + "\r\n";
+                        std::string msg = ":" + client_caller.get_nickname() + " KICK " + ch + " " + user + " " + reason + "\r\n";
                         it->send_message(msg, it2->get_socket());
+                        send(it2->get_socket(), msg.c_str(),msg.length(),0);
                         it->kick_user(it2->get_nickname());
                         return;
                     }
