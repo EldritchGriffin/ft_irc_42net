@@ -196,14 +196,3 @@ void Channel::set_users(std::vector<Client> users)
 {
     this->users = users;
 }
-
-
-// Client  &get_client_obj_from_vector(std::vector<Client> &i, int socket_client)
-// {
-//     for(std::vector<Client>::iterator it = i.begin(); it != i.end(); ++it)
-//     {
-//         if (it->get_socket() == socket_client)
-//             return (*it);
-//     }
-
-// }

@@ -4,46 +4,6 @@
 #include "Tools.hpp"
 #include "numeric_replies.hpp"
 
-
-std::ostream & operator << (std::ostream & o, Client const & rhs)
-{
-    o << "nickname :" << rhs.get_nickname();
-    o << " username :" << rhs.get_username();
-    o << " realname :" << rhs.get_realname() << std::endl;
-    return (o);
-}
-
-std::ostream & operator << (std::ostream & o, Channel const & rhs)
-{
-    o << "nickname :" << rhs.get_name() << std::endl;
-    // o << " username :" << rhs.get_username();
-    // o << " realname :" << rhs.get_realname() << std::endl;
-    return (o);
-}
-
-void    pp_ch(std::vector<Channel> &tmp)
-{
-    unsigned int i = 0;
-    for (std::vector<Channel>::iterator o = tmp.begin(); o != tmp.end(); o++)
-    {
-        i++;
-        std::cout << "Channel number : " << i << " " << *o;
-    }
-}
-
-void    pp_pp(std::map<int, Client> &tmp)
-{
-    unsigned int i = 0;
-    for (std::map<int, Client>::iterator o = tmp.begin(); o != tmp.end(); o++)
-    {
-        i++;
-        std::cout << "Client number : " << i << " " << o->second ;
-    }
-}
-
-
-// ++++++++++++++++++++++++++++++++DEBUGIN FUNCTIONS SESSION+++++++++++++++++++++++++++++++++++++
-
 Server::Server(int port, std::string password)
 {
     this->srv_port = port;
@@ -532,9 +492,3 @@ std::string Server::get_srv_ip() const
     freeifaddrs(ifaddr);
     return (ip);
 }
-//TODO modify the messages sent to the users when executing authentification commands;
-//TODO find a way to mark a user as authentificated after entering all auth commands;
-//TODO remove the testing msg command;
-//TODO polish and finish the functions you started (talking to myself here (griffin) );
-//TODO this one is for drari, find something to work on, anything i started, ill finish, (dont modify code only add your own stuff, to avoid conflict);
-// GGWP GUYS IRC DONE IN A LITTLE BIT;
