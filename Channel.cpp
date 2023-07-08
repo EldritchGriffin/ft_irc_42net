@@ -107,11 +107,6 @@ void Channel::kick_user(std::string user)
     }
 }
 
-void Channel::set_admin(Client admin)
-{
-    this->admin = admin;
-}
-
 std::string Channel::get_name() const
 {
     return this->name;
@@ -124,11 +119,6 @@ int Channel::get_topic_flag() const
 std::string Channel::get_topic() const
 {
     return this->topic;
-}
-
-Client Channel::get_admin() const
-{
-    return this->admin;
 }
 
 void Channel::add_user(Client user)

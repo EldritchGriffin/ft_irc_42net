@@ -4,8 +4,6 @@
 
 int Channel::search_client_in_channel(int   client_socket)
 {
-    if (admin.get_socket() == client_socket)
-        return (1);
     for(std::vector<Client>::iterator ch = operators.begin(); ch != operators.end(); ch++)
     {
         if (ch->get_socket() == client_socket)
@@ -21,8 +19,6 @@ int Channel::search_client_in_channel(int   client_socket)
 
 int Channel::search_client_in_channel(std::string client_name)
 {
-    if (admin.get_nickname() == client_name)
-        return (1);
     for(std::vector<Client>::iterator ch = operators.begin(); ch != operators.end(); ch++)
     {
         if (ch->get_nickname() == client_name)

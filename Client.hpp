@@ -34,6 +34,7 @@ class Client
         std::string hostname;
         std::string servername;
         std::string realname;
+        std::string buffer;
         
         int socket;
         sockaddr_in addr;

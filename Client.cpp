@@ -14,6 +14,7 @@ Client::Client(int socket, sockaddr_in client_addr)
     this->realname = "";
     this->hostname = "";
     this->servername = "";
+    this->buffer = "";
     this->pass_state = NOPASS;
     this->nick_state = NONICK;
     this->user_state = NOUSER;

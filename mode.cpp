@@ -3,10 +3,6 @@
 #include "Client.hpp"
 #include "numeric_replies.hpp"
 
-#include "numeric_replies.hpp"
-
-
-
 void    Channel::update_topic_mode(Client client_socket, std::string mode) // TODO reread the options if that works as needed && change the replay numbers
 {
     int droit = search_client_in_channel(client_socket.get_nickname());
@@ -136,6 +132,7 @@ std::vector<std::string> split(std::string buffer)
 void    mode_operator(int client_socket, std::string channel_name, std::string mode, std::string arg,Server * srv)
 {
     std::vector<Channel> &channels = srv->get_channels();
+    std::map<int , Client> &user = srv->get_clients();
     if(mode == "+o")
     {
         for(std::vector<Channel>::iterator it = channels.begin(); it != channels.end(); ++it)
@@ -147,15 +144,19 @@ void    mode_operator(int client_socket, std::string channel_name, std::string m
                     if(it2->get_nickname() == arg)
                     {
                         it->add_operator(*it2);
-                        std::string msg(":IRC.srv.ma 381 MODE : You are now channel operator\r\n");
+                        std::string msgg = ":" + user[client_socket].get_nickname() + " MODE "+ channel_name +" +o " + it2->get_nickname() + "\r\n";
+                        std::string msg = ":" + user[client_socket].get_nickname() + " " + RPL_YOUREOPER + " MODE : You are now channel operator\r\n";
                         send(it2->get_socket() , msg.c_str(), msg.length() , 0);
+                        send(client_socket, msgg.c_str(),msgg.length(),0);
+                        it->send_message(msgg, client_socket);
                         return ;
                     }
                 }
                 return ;
             }
         }
-        std::string erro(":IRC.srv.ma 442 MODE : Channel not found !!\r\n");
+        // std::string erro(":IRC.srv.ma 442 MODE : Channel not found !!\r\n");
+        std::string erro = ":" + srv->get_srv_ip() + " " + ERR_NOTONCHANNEL +" MODE: Channel not found !!\r\n";
         send(client_socket , erro.c_str(), erro.length() , 0);
     }
     else if(mode == "-o")
@@ -169,15 +170,19 @@ void    mode_operator(int client_socket, std::string channel_name, std::string m
                     if(it2->get_nickname() == arg)
                     {
                         it->remove_operator(*it2);
-                        std::string msg(":IRC.srv.ma 381 MODE : You are no longer channel operator\r\n");
+                        std::string msgg = ":" + user[client_socket].get_nickname() + " MODE "+ channel_name +" -o " + it2->get_nickname() + "\r\n";
+                        std::string msg = ":" + user[client_socket].get_nickname() + " " + RPL_YOUREOPER + " MODE : You are now channel operator\r\n";
                         send(it2->get_socket() , msg.c_str(), msg.length() , 0);
+                        send(client_socket, msgg.c_str(),msgg.length(),0);
+                        it->send_message(msgg, client_socket);
                         return ;
                     }
                 }
                 return ;
             }
         }
-        std::string erro(":IRC.srv.ma 442 MODE : Channel not found !!\r\n");
+        // std::string erro(":IRC.srv.ma 442 MODE : Channel not found !!\r\n");
+        std::string erro = ":" + srv->get_srv_ip() + " " + ERR_NOTONCHANNEL +" MODE: Channel not found !!\r\n";
         send(client_socket , erro.c_str(), erro.length() , 0);
     }
 }

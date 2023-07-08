@@ -13,7 +13,7 @@ void sendUserList(const std::string& channel, int client_socket, Server& server)
         if (it->get_name() == channel) {
             std::vector<Client>& users = it->get_users();
             for (std::vector<Client>::iterator it2 = users.begin(); it2 != users.end(); ++it2) {
-                if(it->search_client_in_channel(it2->get_nickname()) == 1 || it->search_client_in_channel(it2->get_nickname()) == 2)
+                if(it->search_client_in_channel(it2->get_nickname()) == 2)
                     userList += "@" + it2->get_nickname() + " ";
                 else
                     userList += it2->get_nickname() + " ";
@@ -35,11 +35,13 @@ void    create_channel(int client_socket, std::string channel_name, std::string 
     std::vector<Channel> &channels = server.get_channels();
 
     Client client_caller = clients[client_socket];
-    Channel new_channel(channel_name, "this is a topic");
-    new_channel.set_admin(client_caller);
-    new_channel.set_password(key);
+    Channel new_channel(channel_name, "");
     if (key != "")
+    {
         new_channel.set_key_flag(1);
+        new_channel.set_password(key);
+    }
+    new_channel.add_operator(client_caller);
     new_channel.add_user(client_caller);
     channels.push_back(new_channel);
     std::string message = ":" +  client_caller.get_nickname() + " JOIN " + channel_name + "\r\n";

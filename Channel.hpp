@@ -15,7 +15,6 @@ class Channel{
         std::string name;
         std::string topic;
         std::string password;
-        Client      admin;
         int         topic_changers_flag;
         int         invite_changers_flag;
         int         limit_changers_flag;

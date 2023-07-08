@@ -66,7 +66,9 @@ void Server::accept_client()
     this->pollfds.push_back(pfd);
 }
 
-std::string casa_rm(std::string p)
+
+
+std::string remove_lineending(std::string p)
 {
     if (p[p.length() - 2] == '\r' && p[p.length() - 1] == '\n')
         return (p.substr(0, p.length() - 2));
@@ -89,10 +91,11 @@ std::string Server::client_request(int client_socket)
     else if (bytes_read == 0)
     {
         std::cout << "Client disconnected." << std::endl;
-        this->quit_cmd(client_socket);
+        // this->quit_cmd(client_socket);
+        close(client_socket);
         return std::string();
     }
-    return (casa_rm(std::string(buffer)));//TODO rename casa_rm
+    return (remove_lineending(std::string(buffer)));
 }
 
 void Server::msg(int client_socket, std::string buffer)
@@ -231,14 +234,38 @@ void    Server::call_ERR_NOSUCHNICK(int client_socket, std::string cmd)
 }
 
 void Server::part_cmd(int client_socket,std::string buffer){
+    Client client_caller = clients[client_socket];
     std::string ch = buffer.substr(0,buffer.find(" "));
+    buffer.erase(0,ch.length()+1);
+    std::string reson = buffer.substr(0);
+    if (ch == "")
+        call_ERR_NEEDMOREPARAMS(client_socket, "PART");
+    else{
     for(std::vector<Channel>::iterator it = this->channels.begin(); it != this->channels.end(); ++it)
     {
         if(it->get_name() == ch)
         {
-            it->remove_user(this->clients[client_socket]);
+            if(it->search_client_in_channel(client_socket) == 1 || it->search_client_in_channel(client_socket) == 2 || it->search_client_in_channel(client_socket) == 3)
+            {
+                std::string msg = ":" + client_caller.get_nickname() + " PART " + ch + " " + reson + "\r\n";
+                it->send_message(msg, client_socket);
+                send(client_socket, msg.c_str(),msg.length(),0);
+                it->remove_user(client_caller);
+                it->remove_operator(client_caller);
+                return;
+            }
+            else
+            {
+                if (it->search_client_in_channel(client_socket) == 0)
+                    call_ERR_NOTONCHANNEL(client_socket, "PART");
+                else
+                    call_ERR_CHANOPRIVSNEEDED(client_socket, ch,"PART");
+                return;
+            }
         }
     }
+    }
+    call_ERR_NOSUCHCHANNEL(client_socket, ch,"PART");
 }
 
 void Server::list_cmd(int client_socket, std::string buffer)
@@ -246,16 +273,7 @@ void Server::list_cmd(int client_socket, std::string buffer)
     std::string ch = buffer.substr(0,buffer.find(" "));
     // if(ch.empty())
     // {
-    //     std::string msg2 = "321 RPL_LISTSTART :"+ ch +":Users Name\r\n";
-    //     send(client_socket, msg2.c_str(), msg2.length(), 0);
-    //     for(std::vector<Channel>::iterator it = this->channels.begin(); it != this->channels.end(); ++it)
-    //     {
-    //         std::string msg = "322 RPL_LIST " + it->get_name() + " " + std::to_string(it->get_users().size()) + " :Users Name\r\n";
-    //         send(client_socket, msg.c_str(), msg.length(), 0);
-    //     }
-    //     std::string msg1 = "323 RPL_LISTEND :End of /LIST\r\n";
-    //     send(client_socket, msg1.c_str(), msg1.length(), 0);
-    //     return;
+
     // }
     for(std::vector<Channel>::iterator it = this->channels.begin(); it != this->channels.end(); ++it)
     {
@@ -305,7 +323,7 @@ void Server::handle_input(int client_socket)
     buffer.erase(0, command.length() + 1);
     if(command == "MODE")
     // MODE # +t +l 100 -o & 
-    //MODE # +tl 100
+    //MODE # +tl 100Z
     {   // MODE & +++++---+++tm  +t -m  +t-m
         //+lio 100 heheh
         this->mode_flag(client_socket, buffer);
