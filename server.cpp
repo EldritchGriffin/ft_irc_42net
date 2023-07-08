@@ -66,7 +66,9 @@ void Server::accept_client()
     this->pollfds.push_back(pfd);
 }
 
-std::string casa_rm(std::string p)
+
+
+std::string remove_lineending(std::string p)
 {
     if (p[p.length() - 2] == '\r' && p[p.length() - 1] == '\n')
         return (p.substr(0, p.length() - 2));
@@ -92,7 +94,7 @@ std::string Server::client_request(int client_socket)
         this->quit_cmd(client_socket);
         return std::string();
     }
-    return (casa_rm(std::string(buffer)));//TODO rename casa_rm
+    return (remove_lineending(std::string(buffer)));
 }
 
 void Server::msg(int client_socket, std::string buffer)

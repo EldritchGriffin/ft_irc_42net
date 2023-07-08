@@ -2,6 +2,25 @@
 #include "Client.hpp"
 #include "numeric_replies.hpp"
 
+void Server::welcome_user(int client_socket)
+{
+    std::string msg = ":" + this->get_srv_ip() + " " + RPL_WELCOME + " " + this->clients[client_socket].get_nickname() + " :Welcome to the Internet Relay Network " + this->clients[client_socket].get_nickname() + "!" + this->clients[client_socket].get_username() + "@" + this->clients[client_socket].get_hostname() + "\r\n";
+    send(client_socket, msg.c_str(), msg.length(), 0);
+    msg = ":" + this->get_srv_ip() + " " + RPL_YOURHOST + " " + this->clients[client_socket].get_nickname() + " :Your host is " + this->get_srv_ip() + ", running version 1.0\r\n";
+    send(client_socket, msg.c_str(), msg.length(), 0);
+    msg = ":" + this->get_srv_ip() + " " + RPL_CREATED + " " + this->clients[client_socket].get_nickname() + " :This server was created sometime\r\n";
+    send(client_socket, msg.c_str(), msg.length(), 0);
+    msg = ":" + this->get_srv_ip() + " " + RPL_MYINFO + " " + this->clients[client_socket].get_nickname() + " :This server was created sometime\r\n";
+    send(client_socket, msg.c_str(), msg.length(), 0);
+    msg = ":" + this->get_srv_ip() + " " + RPL_MOTDSTART + " " + this->clients[client_socket].get_nickname() + " :- " + this->get_srv_ip() + " Message of the day - \r\n";
+    send(client_socket, msg.c_str(), msg.length(), 0);
+    msg = ":" + this->get_srv_ip() + " " + RPL_MOTD + " " + this->clients[client_socket].get_nickname() + " :- Welcome to the Internet Relay Network " + this->clients[client_socket].get_nickname() + "!" + this->clients[client_socket].get_username() + "@" + this->clients[client_socket].get_hostname() + "\r\n";
+    send(client_socket, msg.c_str(), msg.length(), 0);
+    msg = ":" + this->get_srv_ip() + " " + RPL_ENDOFMOTD + " " + this->clients[client_socket].get_nickname() + " :End of MOTD command\r\n";
+    send(client_socket, msg.c_str(), msg.length(), 0);
+    return;
+}
+
 void Server::auth_client(int client_socket)
 {
     if(this->clients[client_socket].get_grade() == AUTHENTICATED)
@@ -11,9 +30,7 @@ void Server::auth_client(int client_socket)
     && this->clients[client_socket].get_user_state() == USER)
     {
         this->clients[client_socket].set_grade(AUTHENTICATED);
-        std::string msg = ":" + this->get_srv_ip() + " " + RPL_WELCOME + " " 
-        + this->clients[client_socket].get_nickname() + " :" + WLCM_MSG + "\r\n";
-        send(client_socket, msg.c_str(), msg.length(), 0);
+        welcome_user(client_socket);
         return;
     }
     return;

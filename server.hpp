@@ -83,6 +83,7 @@ class Server
         void set_clients(std::map<int ,Client> clients);
         void set_channels(std::vector<Channel> channels);
         void topic_cmd(int client_socket, std::string buffer);
+        void welcome_user(int client_socket);
 
 
         std::string get_client_nick_by_socket(int client_socket);
@@ -100,6 +101,3 @@ class Server
         void    mode_invite(int client_socket, std::string channel_name, std::string mode);
         void    mode_limit(int client_socket, std::string channel_name, std::string mode, int arg);
 };
-
-void    pp_ch(std::vector<Channel> &tmp);
-void    pp_pp(std::map<int, Client> &tmp);
