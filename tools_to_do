@@ -6,3 +6,6 @@
 // fix the replay message in the TOPIC.cpp
 // fix the replay message in the MODE.cpp
 // fix the replay message in the MSG.cpp
+
+// std::string msg = ":"+ this->get_srv_ip() +" " + RPL_TOPIC + " " + message_sender + " " +
+// channel_name + " :" + ch->get_topic() + "\r\n";

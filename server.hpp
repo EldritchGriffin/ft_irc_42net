@@ -98,6 +98,7 @@ class Server
         int check_if_user_exist(std::string user);
         void    call_ERR_NOSUCHCHANNEL(int client_socket, std::string ch, std::string cmd);
         void    mode_invite(int client_socket, std::string channel_name, std::string mode);
+        void    mode_limit(int client_socket, std::string channel_name, std::string mode, int arg);
 };
 
 void    pp_ch(std::vector<Channel> &tmp);
