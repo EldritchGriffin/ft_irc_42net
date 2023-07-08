@@ -21,26 +21,22 @@ class Channel{
         int         limit_changers_flag;
         std::string         limit;
         int         key_changers_flag;
-        std::string         key;
         std::vector<Client> users;
         std::vector<Client> invited;
         std::vector<Client> operators;
     public:
-        int get_invite_flag() const{
-            return (invite_changers_flag);
-        }
-        int get_limit_flag() const{
-            return (limit_changers_flag);
-        }
-        std::string get_limit_value() const{
-            return (limit);
-        }
-        int get_key_flag() const{
-            return (key_changers_flag);
-        }
-        std::string get_key_value() const{
-            return (key);
-        }
+        int get_invite_flag() const;
+        void set_invite_flag(int n);
+
+        int get_limit_flag() const;
+        void set_limit_flag(int n);
+
+        std::string get_limit_value() const;
+        void set_limit_value(std::string n);
+
+        int get_key_flag() const;
+        void set_key_flag(int n);
+
         Channel();
         Channel(std::string name, std::string topic);
         ~Channel();
