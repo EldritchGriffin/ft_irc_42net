@@ -39,10 +39,7 @@ void    create_channel(int client_socket, std::string channel_name, std::string 
     new_channel.set_admin(client_caller);
     new_channel.set_password(key);
     if (key != "")
-    {
-        new_channel
-    }
-    
+        new_channel.set_key_flag(1);
     new_channel.add_user(client_caller);
     channels.push_back(new_channel);
     std::string message = ":" +  client_caller.get_nickname() + " JOIN " + channel_name + "\r\n";
@@ -56,13 +53,24 @@ void join_channel(int client_socket, std::string channel_name, std::string key, 
 
     Client client_caller = clients[client_socket];
     for (std::vector<Channel>::iterator it = channels.begin(); it != channels.end(); ++it) {
-        if (it->get_name() == channel_name) {
-            if (it->get_password() == key) {
+        if (it->get_name() == channel_name)
+        {
+            if(it->get_limit_flag() == 1 && it->get_users().size() >= static_cast<size_t>(atoi(it->get_limit_value().c_str())))
+            {
+                std::string message = ":" + server.get_srv_ip() + " " + ERR_CHANNELISFULL + " " + client_caller.get_nickname() + " " + channel_name + " :Cannot join channel (+l)\r\n";
+                send(client_socket, message.c_str(), message.length(), 0);
+                return;
+            }
+            if(it->search_client_in_channel(client_caller.get_nickname()) != 0)
+            {
+                std::string message = ":" + server.get_srv_ip() + " " + ERR_USERONCHANNEL + " " + client_caller.get_nickname() + " " + channel_name + " :is already on channel\r\n";
+                send(client_socket, message.c_str(), message.length(), 0);
+                return;
+            }
+            if (it->get_password() == key)
+            {
                 it->add_user(client_caller);
                 std::string message = ":" + client_caller.get_nickname() + " JOIN " + channel_name + "\r\n";
-                send(client_socket, message.c_str(), message.length(), 0);
-                message = ":" + server.get_srv_ip() + " " + RPL_TOPIC + " " +
-                                      client_caller.get_nickname() + " " + channel_name + " :" + it->get_topic() + "\r\n";
                 send(client_socket, message.c_str(), message.length(), 0);
                 sendUserList(channel_name, client_socket, server);
                 return;
@@ -89,6 +97,8 @@ void Server::join_cmd(int client_socket, std::string buffer)
     {
         if(key_targets.size() == 0 || i >= key_targets.size())
             key_targets.push_back("");
+        if(channel_targets[i].find_first_of("#&") != 0)
+            channel_targets[i] = "#" + channel_targets[i];
         join_channel(client_socket, channel_targets[i], key_targets[i], *this);
     }
         print_vector(this->channels.at(this->channels.size() - 1).get_users());
