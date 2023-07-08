@@ -251,7 +251,7 @@ void Server::part_cmd(int client_socket,std::string buffer){
                 it->send_message(msg, client_socket);
                 send(client_socket, msg.c_str(),msg.length(),0);
                 it->remove_user(client_caller);
-                // message = ":" + this->_client.getNickname() + "!" + this->_client.getUsername() + "@" + getMachineHostName() + " PART " + channelName + " " + this->_args[1] + "\r\n"
+                it->remove_operator(client_caller);
                 return;
             }
             else
