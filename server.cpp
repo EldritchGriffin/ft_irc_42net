@@ -70,12 +70,14 @@ void Server::accept_client()
 std::string check_lineending(std::string p, Client &sender)
 {
     std::string cl_buffer = sender.get_buffer();
-    p  = cl_buffer + p;
     if (p.find("\r\n") == std::string::npos && p.find("\n") == std::string::npos)
     {
+        std::cout << "|" << p << "|" << std::endl;
         sender.add_to_buffer(p);
         return std::string();
     }
+    if(cl_buffer.length() > 0)
+        p  = cl_buffer + p;
     if(p.find("\r\n") != std::string::npos)
         p = p.substr(0, p.find("\r\n"));
     else if(p.find("\n") != std::string::npos)
