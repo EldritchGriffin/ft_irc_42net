@@ -22,6 +22,6 @@ fclean : clean
 	rm -rf $(NAME)
 
 j : all clean
-	clear && ./ircserv 3000 ok
+	clear && ./ircserv 6667 ok
 
 re : fclean all

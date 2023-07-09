@@ -18,10 +18,7 @@ void Server::quit_cmd(int client_socket)
             std::string msg = ":" + client_caller.get_nickname()  + "@" + this->get_srv_ip() + " QUIT :Client Quit\r\n";
             for(std::vector<Channel>::iterator it1 = this->channels.begin(); it1 != this->channels.end(); ++it1)
             {
-                if(it1->search_client_in_channel(client_socket) == 1)
-                {
-                    it1->remove_user(it->second);
-                }
+                this->part_cmd(client_socket, it1->get_name());
             }
             send(client_socket, msg.c_str(), msg.length(), 0);
             close(it->first);

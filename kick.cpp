@@ -26,13 +26,13 @@ void Server::kick_cmd(int client_socket, std::string buffer)
     {
         if(it->get_name() == ch)
         {
-            if (it->search_client_in_channel(client_socket) != 2 && it->search_client_in_channel(client_socket) != 1)
+            if (it->search_client_in_channel(client_socket) != 2)
             {
                 std::string msg = ":" + this->get_srv_ip() + " " + std::string(ERR_CHANOPRIVSNEEDED)+ " " +  it->get_name() + ch + " :You're not channel operator\r\n";
                 send(client_socket, msg.c_str(), msg.length(), 0);
                 return;
             }
-            else if(it->search_client_in_channel(client_socket) == 1 || it->search_client_in_channel(client_socket) == 2)
+            else if(it->search_client_in_channel(client_socket) == 2)
             {
                 for(std::vector<Client>::iterator it2 = it->get_users().begin(); it2 != it->get_users().end(); ++it2)
                 {
@@ -41,7 +41,8 @@ void Server::kick_cmd(int client_socket, std::string buffer)
                         std::string msg = ":" + client_caller.get_nickname() + " KICK " + ch + " " + user + " " + reason + "\r\n";
                         it->send_message(msg, it2->get_socket());
                         send(it2->get_socket(), msg.c_str(),msg.length(),0);
-                        it->kick_user(it2->get_nickname());
+                        it->remove_user(*it2);
+                        it->remove_operator(client_caller);
                         return;
                     }
                 }

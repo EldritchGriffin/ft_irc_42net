@@ -12,7 +12,7 @@ Client::Client(int socket, sockaddr_in client_addr)
     this->nickname = "";
     this->username = "";
     this->realname = "";
-    this->hostname = "";
+    this->hostname = get_client_ip(socket);
     this->servername = "";
     this->buffer = "";
     this->pass_state = NOPASS;
@@ -120,5 +120,40 @@ std::string Client::get_hostname() const
     return this->hostname;
 }
 
+void Client::add_to_buffer(std::string message)
+{
+    this->buffer += message;
+}
+
+std::string Client::get_buffer() const
+{
+    return this->buffer;
+}
+
+void Client::clear_buffer()
+{
+    this->buffer = "";
+}
+
+std::string Client::get_client_ip(int socket_fd) const
+{
+
+    struct sockaddr_in peer_addr;
+    socklen_t addr_size = sizeof(struct sockaddr_in);
+    int res = getpeername(socket_fd, (struct sockaddr*)&peer_addr, &addr_size);
+
+    if (res != 0) {
+        perror("getpeername");
+        return "";
+    }
+
+    char ipstr[INET_ADDRSTRLEN];
+    if (inet_ntop(AF_INET, &(peer_addr.sin_addr), ipstr, sizeof(ipstr)) == NULL) {
+        perror("inet_ntop");
+        return "";
+    }
+
+    return ipstr ;
+}
 
 
