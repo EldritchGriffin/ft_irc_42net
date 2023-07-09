@@ -67,14 +67,21 @@ void Server::accept_client()
 }
 
 
-
-std::string remove_lineending(std::string p)
+std::string check_lineending(std::string p, Client &sender)
 {
-    if (p[p.length() - 2] == '\r' && p[p.length() - 1] == '\n')
-        return (p.substr(0, p.length() - 2));
-    if (p[p.length() - 1] == '\n')
-        return (p.substr(0, p.length() - 1));
-    return (p);
+    std::string cl_buffer = sender.get_buffer();
+    p  = cl_buffer + p;
+    if (p.find("\r\n") == std::string::npos && p.find("\n") == std::string::npos)
+    {
+        sender.add_to_buffer(p);
+        return std::string();
+    }
+    if(p.find("\r\n") != std::string::npos)
+        p = p.substr(0, p.find("\r\n"));
+    else if(p.find("\n") != std::string::npos)
+        p = p.substr(0, p.find("\n"));
+    std::cout << "|" << p << "|" << std::endl;
+    return p;
 }
 
 std::string Server::client_request(int client_socket)
@@ -91,11 +98,11 @@ std::string Server::client_request(int client_socket)
     else if (bytes_read == 0)
     {
         std::cout << "Client disconnected." << std::endl;
-        // this->quit_cmd(client_socket);
+        this->quit_cmd(client_socket);
         close(client_socket);
         return std::string();
     }
-    return (remove_lineending(std::string(buffer)));
+    return (check_lineending(std::string(buffer), this->clients[client_socket]));
 }
 
 void Server::msg(int client_socket, std::string buffer)
@@ -159,7 +166,6 @@ Client &Server::get_user_obj(std::string target)
             return (usr->second);
     }
     return (clients.begin()->second);
-
 }
 
 int Channel::check_if_user_exist_in_channel(std::string user)
@@ -292,33 +298,14 @@ void Server::list_cmd(int client_socket, std::string buffer)
     send(client_socket, msg.c_str(), msg.length(), 0);
 }
 
-void Server::kill_cmd(int client_socket, std::string buffer)
-{
-    std::string user = buffer.substr(0,buffer.find(" "));
-    buffer.erase(0,user.length()+1);
-    std::string reason = buffer.substr(0);
-    for(std::map<int,Client>::iterator it = this->clients.begin(); it != this->clients.end(); ++it)
-    {
-        if(it->second.get_nickname() == user)
-        {
-            send(it->first, ("KILL " + reason + "\n").c_str(), 16, 0);
-            close(it->first);
-            clients.erase(it);
-            send(client_socket, "KILL OK\n", 8, 0);
-            return;
-        }
-    }
-    send(client_socket, "ERR KILL\n", 9, 0);
-}
-
 void Server::handle_input(int client_socket)
 {
     std::string buffer = this->client_request(client_socket);
+    Client &client_caller = clients[client_socket];
     if(buffer.empty())
     {
         return;
     }
-    std::cout << "|" + buffer + "|" << std::endl;
     std::string command = buffer.substr(0, buffer.find(" "));
     buffer.erase(0, command.length() + 1);
     if(command == "MODE")
@@ -327,64 +314,74 @@ void Server::handle_input(int client_socket)
     {   // MODE & +++++---+++tm  +t -m  +t-m
         //+lio 100 heheh
         this->mode_flag(client_socket, buffer);
+        client_caller.clear_buffer();
     }
     else if(command == "LIST")//absela
     {
         this->list_cmd(client_socket, buffer);// need rework list and list #channel
-    }
-    else if (command == "KILL") // absela
-    {
-        this->kill_cmd(client_socket, buffer);
+        client_caller.clear_buffer();
     }
     else if(command == "PART") // absela
     {
         this->part_cmd(client_socket, buffer);
+        client_caller.clear_buffer();
     }
     else if(command == "PASS") // griffin
     {
         this->pass_cmd(client_socket, buffer);
+        client_caller.clear_buffer();
     }
     else if(command == "INVITE") // scayho
     {
         this->invite_cmd(client_socket, buffer);
+        client_caller.clear_buffer();
     }
     else if(command == "NICK") // griffin
     {
         this->nick_cmd(client_socket, buffer);
+        client_caller.clear_buffer();
     }
     else if(command == "TOPIC") // scayho
     {
         this->topic_cmd(client_socket, buffer);
+        client_caller.clear_buffer();
     }
     else if(command == "USER") // griffin
     {
         this->user_cmd(client_socket, buffer);
+        client_caller.clear_buffer();
     }
     else if (command == "KICK") //absela
     {
         this->kick_cmd(client_socket, buffer);
+        client_caller.clear_buffer();
     }
     else if(command == "JOIN") // griffin
     {
         this->join_cmd(client_socket, buffer);
+        client_caller.clear_buffer();
     }
     else if(command == "MSG" || command == "PRIVMSG") // scayho
     {
         this->msg(client_socket, buffer);
+        client_caller.clear_buffer();
     }
     else if (command == "QUIT")
     {
         this->quit_cmd(client_socket);
+        client_caller.clear_buffer();
     }// we need erase client from all here 
     else if(command == "PONG")
     {
         std::string message = "PONG " + buffer + "\r\n";
         send(client_socket, message.c_str(), message.length(), 0);
+        client_caller.clear_buffer();
     }
     else
     {// absela
         std::string msg = "421 ERR_UNKNOWNCOMMAND <" + command +"> :Unknown command\r\n";
         send(client_socket, msg.c_str(), msg.length(), 0);
+        client_caller.clear_buffer();
     }
 }
 

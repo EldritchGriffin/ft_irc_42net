@@ -21,7 +21,6 @@ void sendUserList(const std::string& channel, int client_socket, Server& server)
             break;
         }
     }
-
     std::string message = ":" + server.get_srv_ip() + " " + RPL_NAMREPLY + " " + clients[client_socket].get_nickname() + " " + userList + "\r\n";
     send(client_socket, message.c_str(), message.length(), 0);
 
@@ -44,7 +43,7 @@ void    create_channel(int client_socket, std::string channel_name, std::string 
     new_channel.add_operator(client_caller);
     new_channel.add_user(client_caller);
     channels.push_back(new_channel);
-    std::string message = ":" +  client_caller.get_nickname() + " JOIN " + channel_name + "\r\n";
+    std::string message = ":" +  client_caller.get_nickname()+"!"+ client_caller.get_username() + "@" + client_caller.get_username() + " JOIN " + channel_name + "\r\n";
     send(client_socket, message.c_str(), message.length(), 0);
     sendUserList(channel_name, client_socket, server);
 }
@@ -72,7 +71,7 @@ void join_channel(int client_socket, std::string channel_name, std::string key, 
             if (it->get_password() == key)
             {
                 it->add_user(client_caller);
-                std::string message = ":" + client_caller.get_nickname() + " JOIN " + channel_name + "\r\n";
+                std::string message = ":" +  client_caller.get_nickname()+"!"+ client_caller.get_username() + "@" + client_caller.get_hostname() + " JOIN " + channel_name + "\r\n";
                 send(client_socket, message.c_str(), message.length(), 0);
                 sendUserList(channel_name, client_socket, server);
                 return;

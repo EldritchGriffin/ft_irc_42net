@@ -22,9 +22,6 @@ enum States
     NOUSER
 };
 
-
-//TODO client will need further additional member variables;
-
 class Channel;
 class Client
 {
@@ -57,6 +54,8 @@ class Client
         void set_user_state(int state);
         void set_hostname(std::string hostname);
         void set_servername(std::string servername);
+        void add_to_buffer(std::string message);
+        void clear_buffer();
 
         int get_socket() const;
 
@@ -65,6 +64,8 @@ class Client
         std::string get_realname() const;
         std::string get_hostname() const;
         std::string get_servername() const;
+        std::string get_buffer() const;
+        std::string get_client_ip(int socket) const;
 
         int get_pass_state() const;
         int get_grade() const;
