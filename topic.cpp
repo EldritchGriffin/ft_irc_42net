@@ -33,15 +33,14 @@ int Channel::search_client_in_channel(std::string client_name)
 }
 
 void    Server::get_channel_topic(std::string channel_name, int client_socket)
-{//:server_ip 332 dan #v4 :Coolest topic
+{
     for(std::vector<Channel>::iterator ch = channels.begin(); ch != channels.end(); ch++)
     {
         int client_existens = ch->search_client_in_channel(client_socket);
-        if (ch->get_name() == channel_name) //TOPIC #test 
+        if (ch->get_name() == channel_name)
         {
-            if (client_existens) // update in case the channel has no topic
+            if (client_existens)
             {
-                // :dan!d@Clk-830D7DDC TOPIC #v3 :This is a cool channel!!
                 std::string message_sender = clients[client_socket].get_nickname();
                 std::string msg = ":"+ this->get_srv_ip() +" " + RPL_TOPIC + " " + message_sender + " " + channel_name + " :" + ch->get_topic() + "\r\n";
                 send(client_socket, (msg).c_str(), msg.length(), 0);
@@ -50,30 +49,29 @@ void    Server::get_channel_topic(std::string channel_name, int client_socket)
         }
     }
     std::string flagu = ERR_NOSUCHCHANNEL;
-    std::string erro(":IRC.srv.ma " + flagu + " " + "TOPIC" + " :unknown channel\r\n");
+    std::string erro(":"+ this->get_srv_ip() + " " + flagu + " " + "TOPIC" + " :unknown channel\r\n");
     send(client_socket, erro.c_str(), erro.length() , 0);
-    //error channel not found
 }
 
 void    Server::call_ERR_CHANOPRIVSNEEDED(int client_socket, std::string channel_name, std::string cmd)
 {
     std::string flagu = ERR_NEEDMOREPARAMS;
-    std::string erro = ":IRC.srv.ma " + flagu + " " + cmd + " : You are a common user of this channel {" + channel_name +"} to push your privilege !!\r\n";
+    std::string erro = ":" + this->get_srv_ip() + " "  + flagu + " " + cmd + " : You are a common user of this channel {" + channel_name +"} to push your privilege !!\r\n";
     send(client_socket, erro.c_str(), erro.length() , 0);
 }
 
 void    Server::set_channel_topic(int client_socket, std::string channel_name, std::string buffer)
-{// TODO , unset topic
+{
     for(std::vector<Channel>::iterator ch = channels.begin(); ch != channels.end(); ch++)
     {
         if (ch->get_name() == channel_name)
         {
             int client_existens = ch->search_client_in_channel(client_socket);
             if ((client_existens > 0 && client_existens < 3) || (client_existens == 3 && ch->get_topic_flag() == 1))
-            {//:dan!d@Clk-830D7DDC TOPIC #v3 :This is a cool channel!!
+            {
                 ch->set_topic(buffer);
                 std::string user_nam = clients[client_socket].get_nickname();
-                std::string msg = ":" + user_nam+"!"+user_nam[0]+"@localhost TOPIC " + channel_name + " :" +buffer + "\r\n";
+                std::string msg = ":" + user_nam+"!"+user_nam[0]+"@" + this->get_srv_ip()  + " TOPIC " + channel_name + " :" + buffer + "\r\n";
                 send(client_socket, msg.c_str(), msg.length(), 0);
                 ch->send_message(msg, client_socket);
             }
@@ -82,7 +80,6 @@ void    Server::set_channel_topic(int client_socket, std::string channel_name, s
             return ;
         }
     }
-    //error channel not found
 }
 
 std::string Server::get_client_nick_by_socket(int client_socket)
@@ -99,7 +96,7 @@ std::string Server::get_client_nick_by_socket(int client_socket)
 void Server::call_ERR_NEEDMOREPARAMS(int client_socket,  std::string cmd)
 {
     std::string flagu = ERR_NEEDMOREPARAMS;
-    std::string erro(":IRC.srv.ma " + flagu + " " + cmd + " :Not enough parameters\r\n");
+    std::string erro(":"+ this->get_srv_ip() +" "  + flagu + " " + cmd + " :Not enough parameters\r\n");
     send(client_socket, erro.c_str(), erro.length() , 0);
 }
 
@@ -124,7 +121,7 @@ int Server::check_if_on_channel(int client_socket, std::string channel_name)
 
 void    Server::call_ERR_NOTONCHANNEL(int client_socket, std::string cmd)
 {
-    std::string erro(":IRC.srv.ma 442 " + cmd + " :You do not belong to this channel !!\r\n");
+    std::string erro(":"+ this->get_srv_ip() +" "  + cmd + " :You do not belong to this channel !!\r\n");
     send(client_socket, erro.c_str(), erro.length() , 0);
 }
 
@@ -142,8 +139,7 @@ void    Server::unset_channel_topic(std::string channel_name, int client_socket)
         if (ch->get_name() == channel_name)
         {
             ch->set_topic("");
-            std::string erro(":IRC.srv.ma 442 TOPIC :you have unsetted the topic !!\r\n");
-            std::cout << "yooooooooooo" << std::endl;
+            std::string erro(":"+ this->get_srv_ip() + " " + " 442 TOPIC :you have unsetted the topic !!\r\n");
             send(client_socket, erro.c_str(), erro.length() , 0);
             ch->send_message(erro, client_socket);
         }
@@ -153,7 +149,6 @@ void    Server::unset_channel_topic(std::string channel_name, int client_socket)
 
 void Server::topic_cmd(int client_socket, std::string buffer)
 {
-    (void)client_socket;
     size_t pos = 0;
     if (buffer.empty() || buffer == ":")
     {
@@ -161,17 +156,12 @@ void Server::topic_cmd(int client_socket, std::string buffer)
         return ;
     }
     std::string channel_name = buffer.substr(0, buffer.find(' '));
+    if (check_if_channel_exist(channel_name) == 0)
+    {
+        call_ERR_NOSUCHCHANNEL(client_socket, channel_name, "TOPIC");
+        return ;
+    }
     buffer.erase(0, (pos = buffer.find(' ')) ==  buffer.npos ? buffer.npos : pos  + 1); // juste chnge it later
-    // std::cout << "here mine====" << buffer << std::endl;
-    // if (buffer[0] == ':')
-    //     buffer.erase(buffer.begin());
-    // if (buffer[0] == ':' && buffer.length() > 1)
-    //     buffer.erase(buffer.begin());
-    // std::cout << "here mine====" << buffer << std::endl;
-
-    // if (buffer.find(' ') == std::string::npos)
-    //     buffer = ":" + buffer;
-    std::cout << "yooooooooo >" + buffer << std::endl;
     if (check_if_on_channel(client_socket, channel_name) == 1)
     {
         call_ERR_NOTONCHANNEL(client_socket, "TOPIC");
@@ -181,12 +171,14 @@ void Server::topic_cmd(int client_socket, std::string buffer)
     {
         get_channel_topic(channel_name, client_socket);
     }
-    // else if (buffer == "::")
-    // {
-    //     unset_channel_topic(channel_name, client_socket);
-    // }
+    else if (buffer == "::")
+    {
+        unset_channel_topic(channel_name, client_socket);
+    }
     else
     {
+        if (buffer[0] == ':')
+            buffer.erase(buffer.begin());
         set_channel_topic(client_socket, channel_name, buffer);
     }
 }

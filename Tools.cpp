@@ -1,4 +1,6 @@
 #include "Tools.hpp"
+#include "server.hpp"
+#include "Channel.hpp"
 #include "Client.hpp"
 
 std::vector<std::string> split_multiple_targets(std::string channel_name)
@@ -27,4 +29,14 @@ void print_vector(std::vector<Client> v)
     {
         std::cout << "----------- " << it->get_nickname() << std::endl;
     }
+}
+
+int Server::check_if_channel_exist(std::string n)
+{
+    for(std::vector<Channel>::iterator i = channels.begin() ; channels.end() != i ; ++i)
+    {
+        if (i->get_name() == n)
+            return (1);
+    }
+    return (0);
 }

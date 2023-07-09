@@ -254,6 +254,7 @@ void    Server::mode_limit(int client_socket, std::string channel_name, std::str
 
 void Server::mode_flag(int client_socket, std::string buffer)
 {
+    std::cout << "yoooooo" << std::endl;
     Client client_caller = clients[client_socket];
     if (client_caller.get_grade() != AUTHENTICATED)
     {

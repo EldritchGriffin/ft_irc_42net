@@ -84,7 +84,7 @@ class Server
         void set_channels(std::vector<Channel> channels);
         void topic_cmd(int client_socket, std::string buffer);
         void welcome_user(int client_socket);
-
+        int check_if_channel_exist(std::string n);
 
         std::string get_client_nick_by_socket(int client_socket);
         void call_ERR_NEEDMOREPARAMS(int client_socket, std::string cmd);
