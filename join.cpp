@@ -43,7 +43,7 @@ void    create_channel(int client_socket, std::string channel_name, std::string 
     new_channel.add_operator(client_caller);
     new_channel.add_user(client_caller);
     channels.push_back(new_channel);
-    std::string message = ":" +  client_caller.get_nickname()+"!"+ client_caller.get_username() + "@" + client_caller.get_username() + " JOIN " + channel_name + "\r\n";
+    std::string message = ":" +  client_caller.get_nickname()+"!"+ client_caller.get_username() + "@" + client_caller.get_hostname() + " JOIN " + channel_name + "\r\n";
     send(client_socket, message.c_str(), message.length(), 0);
     sendUserList(channel_name, client_socket, server);
 }
@@ -84,7 +84,6 @@ void join_channel(int client_socket, std::string channel_name, std::string key, 
 void Server::join_cmd(int client_socket, std::string buffer)
 {
     Client client_caller = clients[client_socket];
-
 
     std::string channel_name = buffer.substr(0, buffer.find(" "));
     buffer.erase(0, channel_name.length() + 1);

@@ -6,19 +6,19 @@ void Server::welcome_user(int client_socket)
 {
     std::string msg = ":" + this->get_srv_ip() + " " + RPL_WELCOME + " " + this->clients[client_socket].get_nickname() + " :𝕎𝕖𝕝𝕔𝕠𝕞𝕖 𝕥𝕠 𝕥𝕙𝕖 𝕀ℝℂ 𝕤𝕖𝕣𝕧𝕖𝕣. 𝕄𝕒𝕕𝕖 𝕓𝕪: 𝕒𝕖𝕝𝕪𝕒𝕜𝕠𝕦, 𝕒𝕓𝕖𝕝𝕒𝕙𝕔𝕖. 𝕒𝕓𝕤𝕖𝕝𝕒." + this->clients[client_socket].get_nickname() + "!" + this->clients[client_socket].get_username() + "@" + this->clients[client_socket].get_hostname() + "\r\n";
     send(client_socket, msg.c_str(), msg.length(), 0);
-    // msg = ":" + this->get_srv_ip() + " " + RPL_YOURHOST + " " + this->clients[client_socket].get_nickname() + " :Your host is " + this->get_srv_ip() + ", running version 1.0\r\n";
-    // send(client_socket, msg.c_str(), msg.length(), 0);
-    // msg = ":" + this->get_srv_ip() + " " + RPL_CREATED + " " + this->clients[client_socket].get_nickname() + " :This server was created when we locked team XD\r\n";
-    // send(client_socket, msg.c_str(), msg.length(), 0);
-    // msg = ":" + this->get_srv_ip() + " " + RPL_MYINFO + " " + this->clients[client_socket].get_nickname() + " :this server is a project of 42_cursus\r\n";
-    // send(client_socket, msg.c_str(), msg.length(), 0);
-    // msg = ":" + this->get_srv_ip() + " " + RPL_MOTDSTART + " " + this->clients[client_socket].get_nickname() + " :- " + this->get_srv_ip() + " Get ready to experience the wonkiest irc server in existence (no server to server communication XD)\r\n";
-    // send(client_socket, msg.c_str(), msg.length(), 0);
-    // msg = ":" + this->get_srv_ip() + " " + RPL_MOTD + " " + this->clients[client_socket].get_nickname() + " :- Remember, he's not dumb, he's just beyond our understanding " + this->clients[client_socket].get_nickname() + "!" + this->clients[client_socket].get_username() + "@" + this->clients[client_socket].get_hostname() + "\r\n";
-    // send(client_socket, msg.c_str(), msg.length(), 0);
-    // msg = ":" + this->get_srv_ip() + " " + RPL_ENDOFMOTD + " " + this->clients[client_socket].get_nickname() + " :End of message of the day\r\n";
-    // send(client_socket, msg.c_str(), msg.length(), 0);
-    // return;
+    msg = ":" + this->get_srv_ip() + " " + RPL_YOURHOST + " " + this->clients[client_socket].get_nickname() + " :Your host is " + this->get_srv_ip() + ", running version 1.0\r\n";
+    send(client_socket, msg.c_str(), msg.length(), 0);
+    msg = ":" + this->get_srv_ip() + " " + RPL_CREATED + " " + this->clients[client_socket].get_nickname() + " :This server was created when we locked team XD\r\n";
+    send(client_socket, msg.c_str(), msg.length(), 0);
+    msg = ":" + this->get_srv_ip() + " " + RPL_MYINFO + " " + this->clients[client_socket].get_nickname() + " :this server is a project of 42_cursus\r\n";
+    send(client_socket, msg.c_str(), msg.length(), 0);
+    msg = ":" + this->get_srv_ip() + " " + RPL_MOTDSTART + " " + this->clients[client_socket].get_nickname() + " :- " + this->get_srv_ip() + " Get ready to experience the wonkiest irc server in existence (no server to server communication XD)\r\n";
+    send(client_socket, msg.c_str(), msg.length(), 0);
+    msg = ":" + this->get_srv_ip() + " " + RPL_MOTD + " " + this->clients[client_socket].get_nickname() + " :- Remember, he's not dumb, he's just beyond our understanding " + this->clients[client_socket].get_nickname() + "!" + this->clients[client_socket].get_username() + "@" + this->clients[client_socket].get_hostname() + "\r\n";
+    send(client_socket, msg.c_str(), msg.length(), 0);
+    msg = ":" + this->get_srv_ip() + " " + RPL_ENDOFMOTD + " " + this->clients[client_socket].get_nickname() + " :End of message of the day\r\n";
+    send(client_socket, msg.c_str(), msg.length(), 0);
+    return;
 }
 
 void Server::auth_client(int client_socket)
