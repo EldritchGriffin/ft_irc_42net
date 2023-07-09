@@ -333,7 +333,7 @@ void Server::handle_input(int client_socket)
         this->pass_cmd(client_socket, buffer);
         client_caller.clear_buffer();
     }
-    else if(command == "INVITE") // scayho
+    else if(command == "INVITE") // scayho // Griffin, invite only channels need to be implemented // TODO
     {
         this->invite_cmd(client_socket, buffer);
         client_caller.clear_buffer();

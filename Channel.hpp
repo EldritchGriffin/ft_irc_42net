@@ -69,6 +69,7 @@ class Channel{
 
         int search_client_in_channel(int   client_socket);
         int search_client_in_channel(std::string client_name);
+        int search_invited(std::string client_name);
 
         void    update_topic_mode(Client client_socket, std::string mode);
         void    update_invite_mode(Client client_socket, std::string mode);
