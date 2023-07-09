@@ -143,10 +143,10 @@ void Server::msg(int client_socket, std::string buffer)
     return;
 }
 
-void Channel::add_invited_user(Client &user, std::string cmd, int client_socket)
+void Channel::add_invited_user(Client &user, std::string cmd, int client_socket, std::string srv_ip)
 {
     invited.push_back(user);
-    std::string erro(":IRC.srv.ma 472 " + cmd + " :Client has been INVITE SUCCESSFULY\r\n"); // TODO check replay number
+    std::string erro(":" + srv_ip + " " + std::string(RPL_INVITING) + " " + cmd + " :Client has been INVITE SUCCESSFULY\r\n");
     send(client_socket, erro.c_str(), erro.length() , 0);
 }
 
@@ -180,7 +180,7 @@ int Channel::check_if_user_exist_in_channel(std::string user)
 
 void    Server::call_ERR_NOSUCHCHANNEL(int client_socket, std::string ch, std::string cmd)
 {
-    std::string erro(":IRC.srv.ma " + std::string(ERR_NOSUCHCHANNEL) + " " + cmd + " :Channel " + ch + " not found\r\n"); // TODO check replay number
+    std::string erro(":" + get_srv_ip() + " " + std::string(ERR_NOSUCHCHANNEL) + " " + cmd + " :Channel " + ch + " not found\r\n");
     send(client_socket, erro.c_str(), erro.length() , 0);
 }
 
@@ -210,7 +210,7 @@ void Server::invite_cmd(int client_socket, std::string buffer){
                     call_ERR_USERONCHANNEL(client_socket, "INVITE");
                     return ;
                 }
-                it->add_invited_user(get_user_obj(user), "INVITE", client_socket); // TODO RPL_INVITING
+                it->add_invited_user(get_user_obj(user), "INVITE", client_socket, get_srv_ip());
                 return;
             }
             else
@@ -229,13 +229,13 @@ void Server::invite_cmd(int client_socket, std::string buffer){
 
 void    Server::call_ERR_USERONCHANNEL(int client_socket, std::string cmd)
 {
-    std::string erro(":IRC.srv.ma 472 " + cmd + " :Client already exist in channel\r\n"); // TODO check replay number
+    std::string erro(":" + get_srv_ip() + " " + std::string(ERR_USERONCHANNEL) + " " + cmd + " :Client already exist in channel\r\n");
     send(client_socket, erro.c_str(), erro.length() , 0);
 }
 
 void    Server::call_ERR_NOSUCHNICK(int client_socket, std::string cmd)
 {
-    std::string erro(":IRC.srv.ma 472 " + cmd + " :Client not exist\r\n"); // TODO check replay number
+    std::string erro(":" + get_srv_ip() + " " + std::string(ERR_NOSUCHNICK) + " " + cmd + " :Client not exist\r\n");
     send(client_socket, erro.c_str(), erro.length() , 0);
 }
 

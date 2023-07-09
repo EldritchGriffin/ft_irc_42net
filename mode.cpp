@@ -3,15 +3,15 @@
 #include "Client.hpp"
 #include "numeric_replies.hpp"
 
-void    Channel::update_topic_mode(Client client_socket, std::string mode) // TODO reread the options if that works as needed && change the replay numbers
+void    Channel::update_topic_mode(Client client_socket, std::string mode, std::string srv_ip)
 {
     int droit = search_client_in_channel(client_socket.get_nickname());
     if (droit != 1 && droit != 2)
     {
-        std::string erro(":IRC.srv.ma 442 TOPIC :You do not have permission to update the mode +-t !!\r\n");
+        std::string erro(":"+ srv_ip + " " + std::string(ERR_CHANOPRIVSNEEDED) + " TOPIC :You do not have permission to update the mode +-t !!\r\n");
         if (droit != 3)
         {
-            std::string erro(":IRC.srv.ma 442 TOPIC :You do not belong to this channel !!\r\n");
+            std::string erro(":" + srv_ip + std::string(ERR_NOTONCHANNEL) + " TOPIC :You do not belong to this channel !!\r\n");
             send(client_socket.get_socket(), erro.c_str(), erro.length() , 0);
         }
         else
@@ -22,7 +22,7 @@ void    Channel::update_topic_mode(Client client_socket, std::string mode) // TO
         if (topic_changers_flag)
             return ;
         topic_changers_flag = 1;
-        std::string msg(":" + client_socket.get_nickname() + "!~h@localhost MODE " + name + " +t " + "\r\n");
+        std::string msg(":" + client_socket.get_nickname() + "!~h@" + srv_ip + " MODE " + name + " +t " + "\r\n");
         send(client_socket.get_socket() , msg.c_str(), msg.length() , 0);
         send_message(msg, client_socket.get_socket());
     }
@@ -30,42 +30,39 @@ void    Channel::update_topic_mode(Client client_socket, std::string mode) // TO
     {
         if (!topic_changers_flag)
             return ;
-        std::string msg(":" + client_socket.get_nickname() + "!~h@localhost MODE " + name + " -t " + "\r\n");
+        std::string msg(":" + client_socket.get_nickname() + "!~h@" + srv_ip + " MODE " + name + " -t " + "\r\n");
         topic_changers_flag = 0;
         send(client_socket.get_socket() , msg.c_str(), msg.length() , 0);
         send_message(msg, client_socket.get_socket());
     }
 }
 
-void    Server::mode_topic(int client_socket, std::string channel_name, std::string mode)
+void    Server::mode_topic(int client_socket, std::string channel_name, std::string mode, std::string srv_ip)
 {
     std::vector<Channel> &Channels_copy = get_channels();
-    // Channel *target_channel;
     for (std::vector<Channel>::iterator p = Channels_copy.begin(); p != Channels_copy.end();p++)
     {
-        // std::cout << channel_name + " ?= "+ p->get_name() << std::endl; // debugging purpose
         if (channel_name == p->get_name())
         {
-            p->update_topic_mode(clients[client_socket], mode);
+            p->update_topic_mode(clients[client_socket], mode, this->get_srv_ip());
             return ;
         }
     }
-    std::string erro(":IRC.srv.ma 442 MODE : Channel not found !!\r\n");
+    std::string erro(":" + srv_ip + " " + std::string(ERR_NOSUCHCHANNEL) + " MODE : Channel not found !!\r\n");
     send(client_socket , erro.c_str(), erro.length() , 0);
-    //TODO error no such channel
 }
 
-void    Channel::update_invite_mode(Client client_socket, std::string mode)
+void    Channel::update_invite_mode(Client client_socket, std::string mode, std::string srv_ip)
 {
     int droit = search_client_in_channel(client_socket.get_nickname());
     if (droit != 1 && droit != 2)
     {
         std::string flagu = ERR_CHANOPRIVSNEEDED;
-        std::string erro(":IRC.srv.ma " + flagu + " MODE :You do not have permission to update the mode +-i !!\r\n");
+        std::string erro(":" + srv_ip + " " + flagu + " MODE :You do not have permission to update the mode +-i !!\r\n");
         if (droit != 3)
         {
             flagu = ERR_NOTONCHANNEL;
-            std::string erro(":IRC.srv.ma " + flagu + " MODE :You do not belong to this channel !!\r\n");
+            std::string erro(":" + srv_ip + " " + flagu + " MODE :You do not belong to this channel !!\r\n");
             send(client_socket.get_socket(), erro.c_str(), erro.length() , 0);
         }
         else
@@ -76,7 +73,7 @@ void    Channel::update_invite_mode(Client client_socket, std::string mode)
         if (invite_changers_flag)
             return ;
         invite_changers_flag = 1;
-        std::string msg(":" + client_socket.get_nickname() + "!~h@localhost MODE " + name + " +i " + "\r\n");
+        std::string msg(":" + client_socket.get_nickname() + "!~h@" + srv_ip + " MODE " + name + " +i " + "\r\n");
         send(client_socket.get_socket() , msg.c_str(), msg.length() , 0);
         send_message(msg, client_socket.get_socket());
     }
@@ -84,35 +81,33 @@ void    Channel::update_invite_mode(Client client_socket, std::string mode)
     {
         if (!invite_changers_flag)
             return ;
-        std::string msg(":" + client_socket.get_nickname() + "!~h@localhost MODE " + name + " -i " + "\r\n");
+        std::string msg(":" + client_socket.get_nickname() + "!~h@" + srv_ip + " MODE " + name + " -i " + "\r\n");
         invite_changers_flag = 0;
         send(client_socket.get_socket() , msg.c_str(), msg.length() , 0);
         send_message(msg, client_socket.get_socket());
     }
 }
 
-void    callUNKNOWNMODE(int client_socket, std::string flg)
+void    callUNKNOWNMODE(int client_socket, std::string flg, std::string srv_ip)
 {
-    std::string erro(":IRC.srv.ma 472 " + flg +" :is unknown mode char to me for\r\n");
+    std::string erro(":" + srv_ip + " " + std::string(ERR_UNKNOWNMODE) + " " + flg +" :is unknown mode char to me for\r\n");
     send(client_socket , erro.c_str(), erro.length() , 0);
 }
 
 
-void    Server::mode_invite(int client_socket, std::string channel_name, std::string mode)
+void    Server::mode_invite(int client_socket, std::string channel_name, std::string mode, std::string srv_ip)
 {
     std::vector<Channel> &Channels_copy = get_channels();
-    // Channel *target_channel;
     for (std::vector<Channel>::iterator p = Channels_copy.begin(); p != Channels_copy.end();p++)
     {
-        // std::cout << channel_name + " ?= "+ p->get_name() << std::endl; // debugging purpose
         if (channel_name == p->get_name())
         {
-            p->update_invite_mode(clients[client_socket], mode);
+            p->update_invite_mode(clients[client_socket], mode, get_srv_ip());
             return ;
         }
     }
     std::string flagu = ERR_NOSUCHCHANNEL;
-    std::string erro(":IRC.srv.ma " + flagu + " MODE : Channel not found !!\r\n");
+    std::string erro(":" + srv_ip + " " + flagu + " MODE : Channel not found !!\r\n");
     send(client_socket , erro.c_str(), erro.length() , 0);
 }
 
@@ -187,7 +182,7 @@ void    mode_operator(int client_socket, std::string channel_name, std::string m
 }
 
 
-void    Server::mode_key(int client_socket, std::string channel_name, std::string mode, std::string arg)
+void    Server::mode_key(int client_socket, std::string channel_name, std::string mode, std::string arg, std::string srv_ip)
 {
     for(std::vector<Channel>::iterator s = channels.begin(); s != channels.end(); s++)
     {
@@ -200,20 +195,19 @@ void    Server::mode_key(int client_socket, std::string channel_name, std::strin
             {
                 s->set_key_flag(1);
                 s->set_password(arg);
-                msg = ":" + get_client_nick_by_socket(client_socket) + "!~h@localhost MODE " + s->get_name() + " +k " + arg + "\r\n";
+                msg = ":" + get_client_nick_by_socket(client_socket) + "!~h@" + srv_ip + " MODE " + s->get_name() + " +k " + arg + "\r\n";
             }
             else if (mode == "-k" && s->get_password() == arg)
             {
                 s->set_key_flag(0);
                 s->set_password("");
-                msg = ":" + get_client_nick_by_socket(client_socket) + "!~h@localhost MODE " + s->get_name() + " -k " + "\r\n";
+                msg = ":" + get_client_nick_by_socket(client_socket) + "!~h@" + srv_ip + " MODE " + s->get_name() + " -k " + "\r\n";
             }
             else if (mode == "-k" && s->get_password() != arg)
             {
-                std::string erro(":IRC.srv.ma 467 " + s->get_name() + ": " + s->get_name() + " Channel key already set\r\n");
+                std::string erro(":" + srv_ip + " 467 " + s->get_name() + ": " + s->get_name() + " Channel key already set\r\n");
                 send(client_socket , erro.c_str(), erro.length() , 0);
                 return ;
-// #ra Channel key already set
             }
             send(client_socket, msg.c_str(), msg.length(), 0);
             s->send_message(msg, client_socket);
@@ -222,7 +216,7 @@ void    Server::mode_key(int client_socket, std::string channel_name, std::strin
     }
 }
 
-void    Server::mode_limit(int client_socket, std::string channel_name, std::string mode, int arg)
+void    Server::mode_limit(int client_socket, std::string channel_name, std::string mode, int arg, std::string srv_ip)
 {
     for(std::vector<Channel>::iterator  chs = channels.begin();chs != channels.end();chs++)
     {
@@ -237,11 +231,11 @@ void    Server::mode_limit(int client_socket, std::string channel_name, std::str
                 ss >> str; 
                 chs->set_limit_value(str);
                 chs->set_limit_flag(1);
-                msg = ":" + get_client_nick_by_socket(client_socket) + "!~h@localhost MODE " + chs->get_name() + " +l " + str + "\r\n";
+                msg = ":" + get_client_nick_by_socket(client_socket) + "!~h@" + srv_ip + " MODE " + chs->get_name() + " +l " + str + "\r\n";
             }
             else if (mode == "-l" && chs->get_limit_flag() == 1)
             {
-                msg = ":" + get_client_nick_by_socket(client_socket) + "!~h@localhost MODE " + chs->get_name() + " -l " + "\r\n";
+                msg = ":" + get_client_nick_by_socket(client_socket) + "!~h@" + srv_ip + " MODE " + chs->get_name() + " -l " + "\r\n";
                 chs->set_limit_value("");
                 chs->set_limit_flag(0);
             }
@@ -254,7 +248,6 @@ void    Server::mode_limit(int client_socket, std::string channel_name, std::str
 
 void Server::mode_flag(int client_socket, std::string buffer)
 {
-    std::cout << "yoooooo" << std::endl;
     Client client_caller = clients[client_socket];
     if (client_caller.get_grade() != AUTHENTICATED)
     {
@@ -321,19 +314,19 @@ void Server::mode_flag(int client_socket, std::string buffer)
             option_param = option_sign + mode.at(0);
             if (option_param == "+i" || option_param == "-i")
             {
-                mode_invite(client_socket, channel_name, option_param);
+                mode_invite(client_socket, channel_name, option_param, get_srv_ip());
             }
         }
         else if (mode[0] == 't'){
             option_param = option_sign + mode.at(0);
             if (option_param == "+t" || option_param == "-t")
             {
-                mode_topic(client_socket, channel_name, option_param);
+                mode_topic(client_socket, channel_name, option_param, get_srv_ip());
             }
         }
         else if (mode[0] == 'l'){
             option_param = option_sign + mode.at(0);
-            if (option_param == "+l" || option_param == "-l") // CHECK IF THERE IS A PARAMETER FOR THE COMMAND
+            if (option_param == "+l" || option_param == "-l")
             {
                 if (arg.size() < 1 && option_param == "+l")
                 {
@@ -350,7 +343,7 @@ void Server::mode_flag(int client_socket, std::string buffer)
                 } 
                 else
                 {
-                    mode_limit(client_socket, channel_name, option_param, atoi(arg[0].c_str()));
+                    mode_limit(client_socket, channel_name, option_param, atoi(arg[0].c_str()), get_srv_ip());
                     if (option_param == "+l")
                         arg.erase(arg.begin());
                 }
@@ -358,7 +351,7 @@ void Server::mode_flag(int client_socket, std::string buffer)
         }
         else if (mode[0] == 'k'){
             option_param = option_sign + mode.at(0);
-            if (option_param == "+k" || option_param == "-k") // CHECK IF THERE IS A PARAMETER FOR THE COMMAND
+            if (option_param == "+k" || option_param == "-k")
             {
                 if (arg.size() < 1)
                 {
@@ -368,7 +361,7 @@ void Server::mode_flag(int client_socket, std::string buffer)
                 }
                 else
                 {
-                    mode_key(client_socket, channel_name, option_param,arg[0]);
+                    mode_key(client_socket, channel_name, option_param,arg[0], get_srv_ip());
                     arg.erase(arg.begin());
                 }
             }
@@ -389,7 +382,7 @@ void Server::mode_flag(int client_socket, std::string buffer)
             }
         }
         else if (mode[0] != 'n' && mode[0] != 's')
-            callUNKNOWNMODE(client_socket, mode);
+            callUNKNOWNMODE(client_socket, mode, get_srv_ip());
         mode.erase(mode.begin());
         i++;
     }

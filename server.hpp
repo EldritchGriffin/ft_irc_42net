@@ -93,12 +93,12 @@ class Server
         void    call_ERR_NOSUCHNICK(int client_socket, std::string cmd);
         void    call_ERR_USERONCHANNEL(int client_socket, std::string cmd);
         void    call_ERR_CHANOPRIVSNEEDED(int client_socket, std::string channel_name, std::string cmd);
-        void    mode_topic(int client_socket, std::string buffer, std::string mode);
+        void    mode_topic(int client_socket, std::string buffer, std::string mode, std::string srv_ip);
         void    unset_channel_topic(std::string channel_name, int client_socket);
         Client &get_user_obj(std::string target);
         int check_if_user_exist(std::string user);
         void    call_ERR_NOSUCHCHANNEL(int client_socket, std::string ch, std::string cmd);
-        void    mode_invite(int client_socket, std::string channel_name, std::string mode);
-        void    mode_limit(int client_socket, std::string channel_name, std::string mode, int arg);
-        void    mode_key(int client_socket, std::string channel_name, std::string mode, std::string arg);
+        void    mode_invite(int client_socket, std::string channel_name, std::string mode, std::string srv_ip);
+        void    mode_limit(int client_socket, std::string channel_name, std::string mode, int arg, std::string srv_ip);
+        void    mode_key(int client_socket, std::string channel_name, std::string mode, std::string arg, std::string srv_ip);
 };

@@ -121,7 +121,7 @@ int Server::check_if_on_channel(int client_socket, std::string channel_name)
 
 void    Server::call_ERR_NOTONCHANNEL(int client_socket, std::string cmd)
 {
-    std::string erro(":"+ this->get_srv_ip() +" "  + cmd + " :You do not belong to this channel !!\r\n");
+    std::string erro(":"+ this->get_srv_ip() + " " + std::string(ERR_NOTONCHANNEL) + " "  + cmd + " :You do not belong to this channel !!\r\n");
     send(client_socket, erro.c_str(), erro.length() , 0);
 }
 
@@ -139,7 +139,7 @@ void    Server::unset_channel_topic(std::string channel_name, int client_socket)
         if (ch->get_name() == channel_name)
         {
             ch->set_topic("");
-            std::string erro(":"+ this->get_srv_ip() + " " + " 442 TOPIC :you have unsetted the topic !!\r\n");
+            std::string erro(":"+ this->get_srv_ip() + " " + std::string(RPL_NOTOPIC) + " TOPIC :you have unsetted the topic !!\r\n");
             send(client_socket, erro.c_str(), erro.length() , 0);
             ch->send_message(erro, client_socket);
         }
