@@ -137,23 +137,32 @@ void Client::clear_buffer()
 
 std::string Client::get_client_ip(int socket_fd) const
 {
-
-    struct sockaddr_in peer_addr;
+    struct sockaddr_in addr;
     socklen_t addr_size = sizeof(struct sockaddr_in);
-    int res = getpeername(socket_fd, (struct sockaddr*)&peer_addr, &addr_size);
-
+    int res = getpeername(socket_fd, (struct sockaddr*)&addr, &addr_size);
+    char clientip[INET_ADDRSTRLEN];
     if (res != 0) {
         perror("getpeername");
-        return "";
-    }
+    } else {
+        inet_ntop(AF_INET, &(addr.sin_addr), clientip, sizeof(clientip));
+        // If the IP address is a loopback address, retrieve the public IP
+        if (clientip == std::string("127.0.0.1")) 
+        {
+            char hostbuffer[256]; 
+            char *IPbuffer; 
+            struct hostent *host_entry; 
+            int hostname; 
 
-    char ipstr[INET_ADDRSTRLEN];
-    if (inet_ntop(AF_INET, &(peer_addr.sin_addr), ipstr, sizeof(ipstr)) == NULL) {
-        perror("inet_ntop");
-        return "";
-    }
+            // Fetch the hostname 
+            hostname = gethostname(hostbuffer, sizeof(hostbuffer)); 
 
-    return ipstr ;
+            // Fetch the IP address 
+            if ((host_entry = gethostbyname(hostbuffer))) {
+                IPbuffer = inet_ntoa(*((struct in_addr*) host_entry->h_addr_list[0])); 
+                strcpy(clientip, IPbuffer);
+            }
+        }
+    }
+    return clientip;
 }
-
 

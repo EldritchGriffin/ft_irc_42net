@@ -85,7 +85,6 @@ void Server::join_cmd(int client_socket, std::string buffer)
 {
     Client client_caller = clients[client_socket];
 
-
     std::string channel_name = buffer.substr(0, buffer.find(" "));
     buffer.erase(0, channel_name.length() + 1);
     std::string key = buffer.substr(0, buffer.length());
