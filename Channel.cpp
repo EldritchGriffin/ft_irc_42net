@@ -177,6 +177,16 @@ void Channel::send_message(std::string message, int client_socket)
     }
 }
 
+int Channel::search_invited(std::string client_name)
+{
+    for(std::vector<Client>::iterator ch = invited.begin(); ch != invited.end(); ch++)
+    {
+        if (ch->get_nickname() == client_name)
+            return (1);
+    }
+    return (0);
+}
+
 std::vector<Client> &Channel::get_users()
 {
     return this->users;
