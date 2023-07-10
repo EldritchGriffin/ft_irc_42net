@@ -22,8 +22,19 @@ class joke
 {
     std::vector<std::string> jokes_list;
     std::vector<std::string> jokes_answers;
-    joke();
-    ~joke();
+    public:
+        joke();
+        ~joke(){}
+        void    get_a_joke(int sock);
+};
+
+class zodiac
+{
+    std::vector<std::string> zodiac_list;
+    public:
+        zodiac();
+        ~zodiac(){}
+        void    get_a_zodiac(int sock, int month, int day);
 };
 
 #endif
