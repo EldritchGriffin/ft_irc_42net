@@ -255,6 +255,40 @@ void    Server::call_ERR_NOSUCHNICK(int client_socket, std::string cmd)
     send(client_socket, erro.c_str(), erro.length() , 0);
 }
 
+std::string timer()
+{
+    std::time_t t = std::time(NULL);
+    char time_str[20];
+
+    std::strftime(time_str, sizeof(time_str), "%H:%M:%S", std::localtime(&t));
+    return std::string(time_str) + " \r\n";
+}
+std::string get_current_date()
+{
+    std::time_t t = std::time(NULL);
+    char date_str[11];
+
+    std::strftime(date_str, sizeof(date_str), "%Y-%m-%d", std::localtime(&t));
+    return std::string(date_str);
+}
+void Server::bot_cmd(int client_socket,std::string buffer)
+{
+
+    std::string bot = buffer.substr(0,buffer.find(" "));
+    buffer.erase(0,bot.length()+1);
+    if (bot == "")
+    {
+        call_ERR_NEEDMOREPARAMS(client_socket, "BOT");
+        return;
+    }
+    if (bot == "TIME")
+    {
+        std::string msg = clients[client_socket].get_nickname() + " " + get_current_date() + " " + timer();
+        this->msg(client_socket,msg);
+    }
+}
+
+
 void Server::handle_input(int client_socket)
 {
     std::string buffer = this->client_request(client_socket);
@@ -329,6 +363,11 @@ void Server::handle_input(int client_socket)
     else if (command == "QUIT")
     {
         this->quit_cmd(client_socket);
+        client_caller.clear_buffer();
+    }
+    else if(command == "BOT")
+    {
+        this->bot_cmd(client_socket,buffer);
         client_caller.clear_buffer();
     }
     else if(command == "PONG")
