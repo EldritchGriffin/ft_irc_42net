@@ -10,9 +10,9 @@ void Server::quit_cmd(int client_socket)
         if(it->first == client_socket)
         {
             std::string msg = ":" + client_caller.get_nickname()  + "@" + this->get_srv_ip() + " QUIT :Client Quit\r\n";
-            for(std::vector<Channel>::iterator it1 = this->channels.begin(); it1 != this->channels.end(); ++it1)
+            for(size_t i = 0; i < this->channels.size(); i++)
             {
-                this->part_cmd(client_socket, it1->get_name());
+                this->part_cmd(client_socket, channels[i].get_name());
             }
             send(client_socket, msg.c_str(), msg.length(), 0);
             close(it->first);
