@@ -135,6 +135,8 @@ void    mode_operator(int client_socket, std::string channel_name, std::string m
             {
                 for(std::vector<Client>::iterator it2 = it->get_users().begin(); it2 != it->get_users().end(); ++it2)
                 {
+                    if (it->search_client_in_channel(it2->get_nickname()) == 2)
+                        return;
                     if(it2->get_nickname() == arg)
                     {
                         it->add_operator(*it2);
@@ -161,6 +163,8 @@ void    mode_operator(int client_socket, std::string channel_name, std::string m
             {
                 for(std::vector<Client>::iterator it2 = it->get_users().begin(); it2 != it->get_users().end(); ++it2)
                 {
+                    if (it->search_client_in_channel(it2->get_nickname()) == 3)
+                        return;
                     if(it2->get_nickname() == arg)
                     {
                         it->remove_operator(*it2);
@@ -195,13 +199,13 @@ void    Server::mode_key(int client_socket, std::string channel_name, std::strin
             {
                 s->set_key_flag(1);
                 s->set_password(arg);
-                msg = ":" + get_client_nick_by_socket(client_socket) + "!~h@" + srv_ip + " MODE " + s->get_name() + " +k " + arg + "\r\n";
+                msg = ":" + clients[client_socket].get_nickname() + "!~h@" + srv_ip + " MODE " + s->get_name() + " +k " + arg + "\r\n";
             }
             else if (mode == "-k" && s->get_password() == arg)
             {
                 s->set_key_flag(0);
                 s->set_password("");
-                msg = ":" + get_client_nick_by_socket(client_socket) + "!~h@" + srv_ip + " MODE " + s->get_name() + " -k " + "\r\n";
+                msg = ":" + clients[client_socket].get_nickname() + "!~h@" + srv_ip + " MODE " + s->get_name() + " -k " + "\r\n";
             }
             else if (mode == "-k" && s->get_password() != arg)
             {
@@ -231,11 +235,11 @@ void    Server::mode_limit(int client_socket, std::string channel_name, std::str
                 ss >> str; 
                 chs->set_limit_value(str);
                 chs->set_limit_flag(1);
-                msg = ":" + get_client_nick_by_socket(client_socket) + "!~h@" + srv_ip + " MODE " + chs->get_name() + " +l " + str + "\r\n";
+                msg = ":" + clients[client_socket].get_nickname() + "!~h@" + srv_ip + " MODE " + chs->get_name() + " +l " + str + "\r\n";
             }
             else if (mode == "-l" && chs->get_limit_flag() == 1)
             {
-                msg = ":" + get_client_nick_by_socket(client_socket) + "!~h@" + srv_ip + " MODE " + chs->get_name() + " -l " + "\r\n";
+                msg = ":" + clients[client_socket].get_nickname() + "!~h@" + srv_ip + " MODE " + chs->get_name() + " -l " + "\r\n";
                 chs->set_limit_value("");
                 chs->set_limit_flag(0);
             }
@@ -289,7 +293,9 @@ void Server::mode_flag(int client_socket, std::string buffer)
                 {
                     options += "t";
                 }
-                std::string msg = ":" + this->get_srv_ip() + " " + std::string(RPL_CHANNELMODEIS) + " MODE " + get_client_nick_by_socket(client_socket) + " " + channel_name + " " + options + " " + arguments + "\r\n";
+                if (options == "+")
+                    options = std::string();
+                std::string msg = ":" + this->get_srv_ip() + " " + std::string(RPL_CHANNELMODEIS) + " MODE " + clients[client_socket].get_nickname() + " " + channel_name + " " + options + " " + arguments + "\r\n";
                 send(client_socket , msg.c_str(), msg.length() , 0);
                 return ;
             }
@@ -368,12 +374,12 @@ void Server::mode_flag(int client_socket, std::string buffer)
         }
         else if (mode[0] == 'o'){
             option_param = option_sign + mode.at(0);
-            if (option_param == "+o" || option_param == "-o") // CHECK IF USER EXIST AND THERE IS A PARAMETER FOR THE COMMAND
+            if (option_param == "+o" || option_param == "-o")
             {
                 if (arg.size() < 1)
-                    call_ERR_NEEDMOREPARAMS(client_socket,"MODE"); // update it for the right message
+                    call_ERR_NEEDMOREPARAMS(client_socket,"MODE");
                 else if (check_if_user_exist(arg[0]) == 0)
-                    call_ERR_NEEDMOREPARAMS(client_socket,"MODE"); // update it for the right message
+                    call_ERR_NOSUCHNICK(client_socket, arg[0]);
                 else
                 {
                     mode_operator(client_socket, channel_name, option_param, arg[0], this);
