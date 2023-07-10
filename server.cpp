@@ -101,7 +101,6 @@ std::string Server::client_request(int client_socket)
     {
         std::cout << "Client disconnected." << std::endl;
         this->quit_cmd(client_socket);
-        close(client_socket);
         return std::string();
     }
     return (check_lineending(std::string(buffer), this->clients[client_socket]));

@@ -1,5 +1,4 @@
-SRC 	:= main.cpp server.cpp Client.cpp Channel.cpp Tools.cpp authenticateUser.cpp join.cpp topic.cpp
-SRC 	:= *.cpp
+SRC 	:= main.cpp server.cpp Client.cpp Channel.cpp Tools.cpp authenticateUser.cpp join.cpp topic.cpp quit.cpp  kick.cpp mode.cpp
 CC 		:= c++
 CFLAG	:= -Wall -Werror -Wextra -std=c++98 -fsanitize=address
 NAME 	:= ircserv
