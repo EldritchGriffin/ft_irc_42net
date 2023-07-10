@@ -135,6 +135,8 @@ void    mode_operator(int client_socket, std::string channel_name, std::string m
             {
                 for(std::vector<Client>::iterator it2 = it->get_users().begin(); it2 != it->get_users().end(); ++it2)
                 {
+                    if (it->search_client_in_channel(it2->get_nickname()) == 2)
+                        return;
                     if(it2->get_nickname() == arg)
                     {
                         it->add_operator(*it2);
@@ -161,6 +163,8 @@ void    mode_operator(int client_socket, std::string channel_name, std::string m
             {
                 for(std::vector<Client>::iterator it2 = it->get_users().begin(); it2 != it->get_users().end(); ++it2)
                 {
+                    if (it->search_client_in_channel(it2->get_nickname()) == 3)
+                        return;
                     if(it2->get_nickname() == arg)
                     {
                         it->remove_operator(*it2);
@@ -368,12 +372,12 @@ void Server::mode_flag(int client_socket, std::string buffer)
         }
         else if (mode[0] == 'o'){
             option_param = option_sign + mode.at(0);
-            if (option_param == "+o" || option_param == "-o") // CHECK IF USER EXIST AND THERE IS A PARAMETER FOR THE COMMAND
+            if (option_param == "+o" || option_param == "-o")
             {
                 if (arg.size() < 1)
-                    call_ERR_NEEDMOREPARAMS(client_socket,"MODE"); // update it for the right message
+                    call_ERR_NEEDMOREPARAMS(client_socket,"MODE");
                 else if (check_if_user_exist(arg[0]) == 0)
-                    call_ERR_NEEDMOREPARAMS(client_socket,"MODE"); // update it for the right message
+                    call_ERR_NOSUCHNICK(client_socket, arg[0]);
                 else
                 {
                     mode_operator(client_socket, channel_name, option_param, arg[0], this);

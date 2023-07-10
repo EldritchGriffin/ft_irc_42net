@@ -410,7 +410,7 @@ void Server::handle_input(int client_socket)
     }
     else
     {// absela
-        std::string msg = "421 ERR_UNKNOWNCOMMAND <" + command +"> :Unknown command\r\n";
+        std::string msg = ":" + this->get_srv_ip() + " 421 * :" + command +" Unknown command\r\n";
         send(client_socket, msg.c_str(), msg.length(), 0);
         client_caller.clear_buffer();
     }
