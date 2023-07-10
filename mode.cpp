@@ -195,13 +195,13 @@ void    Server::mode_key(int client_socket, std::string channel_name, std::strin
             {
                 s->set_key_flag(1);
                 s->set_password(arg);
-                msg = ":" + get_client_nick_by_socket(client_socket) + "!~h@" + srv_ip + " MODE " + s->get_name() + " +k " + arg + "\r\n";
+                msg = ":" + clients[client_socket].get_nickname() + "!~h@" + srv_ip + " MODE " + s->get_name() + " +k " + arg + "\r\n";
             }
             else if (mode == "-k" && s->get_password() == arg)
             {
                 s->set_key_flag(0);
                 s->set_password("");
-                msg = ":" + get_client_nick_by_socket(client_socket) + "!~h@" + srv_ip + " MODE " + s->get_name() + " -k " + "\r\n";
+                msg = ":" + clients[client_socket].get_nickname() + "!~h@" + srv_ip + " MODE " + s->get_name() + " -k " + "\r\n";
             }
             else if (mode == "-k" && s->get_password() != arg)
             {
@@ -231,11 +231,11 @@ void    Server::mode_limit(int client_socket, std::string channel_name, std::str
                 ss >> str; 
                 chs->set_limit_value(str);
                 chs->set_limit_flag(1);
-                msg = ":" + get_client_nick_by_socket(client_socket) + "!~h@" + srv_ip + " MODE " + chs->get_name() + " +l " + str + "\r\n";
+                msg = ":" + clients[client_socket].get_nickname() + "!~h@" + srv_ip + " MODE " + chs->get_name() + " +l " + str + "\r\n";
             }
             else if (mode == "-l" && chs->get_limit_flag() == 1)
             {
-                msg = ":" + get_client_nick_by_socket(client_socket) + "!~h@" + srv_ip + " MODE " + chs->get_name() + " -l " + "\r\n";
+                msg = ":" + clients[client_socket].get_nickname() + "!~h@" + srv_ip + " MODE " + chs->get_name() + " -l " + "\r\n";
                 chs->set_limit_value("");
                 chs->set_limit_flag(0);
             }
@@ -289,7 +289,9 @@ void Server::mode_flag(int client_socket, std::string buffer)
                 {
                     options += "t";
                 }
-                std::string msg = ":" + this->get_srv_ip() + " " + std::string(RPL_CHANNELMODEIS) + " MODE " + get_client_nick_by_socket(client_socket) + " " + channel_name + " " + options + " " + arguments + "\r\n";
+                if (options == "+")
+                    options = std::string();
+                std::string msg = ":" + this->get_srv_ip() + " " + std::string(RPL_CHANNELMODEIS) + " MODE " + clients[client_socket].get_nickname() + " " + channel_name + " " + options + " " + arguments + "\r\n";
                 send(client_socket , msg.c_str(), msg.length() , 0);
                 return ;
             }
