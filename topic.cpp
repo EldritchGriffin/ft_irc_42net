@@ -84,14 +84,13 @@ void    Server::set_channel_topic(int client_socket, std::string channel_name, s
 
 std::string Server::get_client_nick_by_socket(int client_socket)
 {
-    for (unsigned int i = 0; i < channels.size();i++)
+    for (unsigned int i = 0; i < clients.size();i++)
     {
         if (client_socket == clients[i].get_socket())
             return (clients[i].get_nickname());
     }
     return ("");
 }
-
 
 void Server::call_ERR_NEEDMOREPARAMS(int client_socket,  std::string cmd)
 {
@@ -139,10 +138,7 @@ void    Server::unset_channel_topic(std::string channel_name, int client_socket)
         if (ch->get_name() == channel_name)
         {
             ch->set_topic("");
-            // std::string erro(":"+ this->get_srv_ip() + " " + std::string(RPL_NOTOPIC) + " TOPIC " + ch->get_name() + " : you have unsetted the topic !!\r\n");
-            // std::string erro(":"+ this->get_srv_ip() + " " +  " TOPIC " + ch->get_name() + " : you have unsetted the topic !!\r\n");
-            // :dan!d@Clk-830D7DDC TOPIC #v3 :
-            std::string erro(":" + get_client_nick_by_socket(client_socket) + "!" + get_client_nick_by_socket(client_socket)[0] + "@" + this->get_srv_ip() + " " +  " TOPIC " + ch->get_name() + " :\r\n");
+            std::string erro = ":" + clients[client_socket].get_nickname()+"!"+clients[client_socket].get_nickname()[0]+"@" + this->get_srv_ip()  + " TOPIC " + channel_name + " :" + "\r\n";
             send(client_socket, erro.c_str(), erro.length() , 0);
             ch->send_message(erro, client_socket);
         }
@@ -164,7 +160,11 @@ void Server::topic_cmd(int client_socket, std::string buffer)
         call_ERR_NOSUCHCHANNEL(client_socket, channel_name, "TOPIC");
         return ;
     }
-    buffer.erase(0, (pos = buffer.find(' ')) ==  buffer.npos ? buffer.npos : pos  + 1); // juste chnge it later
+    pos = buffer.find(' ');
+    if (pos == buffer.npos)
+        buffer.erase(0, buffer.npos);
+    else
+        buffer.erase(0, pos  + 1);
     if (check_if_on_channel(client_socket, channel_name) == 1)
     {
         call_ERR_NOTONCHANNEL(client_socket, "TOPIC");

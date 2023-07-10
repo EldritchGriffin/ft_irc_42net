@@ -116,30 +116,45 @@ void Server::msg(int client_socket, std::string buffer)
         send(client_socket, msg.c_str(), msg.length(), 0);
         return;
     }
-    std::string channel_name = buffer.substr(0, buffer.find(" "));
-    buffer.erase(0, channel_name.length() + 1);
+    std::string target = buffer.substr(0, buffer.find(" "));
+    buffer.erase(0, target.length() + 1);
     if (buffer[0] == ':')
         buffer.erase(0, 1);
-    std::vector<std::string> target_names = split_multiple_targets(channel_name);
+    if (buffer.empty())
+    {
+        std::string msg(":"+ this->get_srv_ip() +" "  + std::string(ERR_NOTEXTTOSEND) + " PRIVMSG " + " :No text to send\r\n");
+        send(client_socket, msg.c_str(), msg.length(), 0);
+        return;
+    }
+    std::vector<std::string> target_names = split_multiple_targets(target);
+    int k = 0;
     for (unsigned int i = 0; i < target_names.size(); i++)
     {
-        channel_name = target_names[i];
+        k = 0;
+        target = target_names[i];
         for(std::vector<Channel>::iterator it = this->channels.begin(); it != this->channels.end(); ++it)
         {
-            if(it->get_name() == channel_name)
+            if(it->get_name() == target)
             {
-                std::string msg = ":" + client_caller.get_nickname() + " PRIVMSG " + channel_name + " :" + buffer + "\r\n";
+                std::string msg = ":" + client_caller.get_nickname() + " PRIVMSG " + target + " :" + buffer + "\r\n";
                 std::cout << "Num users : " << it->get_users().size() << std::endl;
                 it->send_message(msg, client_socket);
+                k = 1;
             }
         }
         for(std::map<int, Client>::iterator it = this->clients.begin(); it != this->clients.end(); ++it)
         {
-            if(it->second.get_nickname() == channel_name)
+            if(it->second.get_nickname() == target)
             {
-                std::string msg = ":" + client_caller.get_nickname() + " PRIVMSG " + channel_name + " :" + buffer + "\r\n";
+                std::string msg = ":" + client_caller.get_nickname() + " PRIVMSG " + target + " :" + buffer + "\r\n";
                 send(it->second.get_socket(), msg.c_str(), msg.length(), 0);
+                k = 1;
             }
+        }
+        if (k == 0)
+        {
+            std::string erro(":" + get_srv_ip() + " " + std::string(ERR_NOSUCHNICK) + " " + "PRIVMSG" + " : No such nick/channel\r\n");
+            send(client_socket, erro.c_str(), erro.length() , 0);
         }
     }
     return;
