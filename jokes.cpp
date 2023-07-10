@@ -60,6 +60,8 @@ void    joke::get_a_joke(int sock)
 
 zodiac::zodiac()
 {
+    zodiac_list.push_back("Aquarius ");
+    zodiac_list.push_back("Pisces");
     zodiac_list.push_back("Aries");
     zodiac_list.push_back("Taurus");
     zodiac_list.push_back("Gemini");
@@ -70,8 +72,6 @@ zodiac::zodiac()
     zodiac_list.push_back("Scorpio");
     zodiac_list.push_back("Sagittarius");
     zodiac_list.push_back("Capricorn");
-    zodiac_list.push_back("Aquarius ");
-    zodiac_list.push_back("Pisces");
 }
 
 void    zodiac::get_a_zodiac(int sock, int month, int day)
