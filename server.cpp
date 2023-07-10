@@ -241,63 +241,89 @@ void    Server::call_ERR_NOSUCHNICK(int client_socket, std::string cmd)
     send(client_socket, erro.c_str(), erro.length() , 0);
 }
 
+
 void Server::part_cmd(int client_socket,std::string buffer){
     Client client_caller = clients[client_socket];
     std::string ch = buffer.substr(0,buffer.find(" "));
     buffer.erase(0,ch.length()+1);
     std::string reson = buffer.substr(0);
+    std::vector<std::string> channel = split_multiple_targets(ch);
     if (ch == "")
         call_ERR_NEEDMOREPARAMS(client_socket, "PART");
     else{
-    for(std::vector<Channel>::iterator it = this->channels.begin(); it != this->channels.end(); ++it)
-    {
-        if(it->get_name() == ch)
+        for(size_t i=0; i < channel.size();i++)
         {
-            if(it->search_client_in_channel(client_socket) == 1 || it->search_client_in_channel(client_socket) == 2 || it->search_client_in_channel(client_socket) == 3)
+            ch = channel[i];
+            for(std::vector<Channel>::iterator it = this->channels.begin(); it != this->channels.end(); ++it)
             {
-                std::string msg = ":" + client_caller.get_nickname() + " PART " + ch + " " + reson + "\r\n";
-                it->send_message(msg, client_socket);
-                send(client_socket, msg.c_str(),msg.length(),0);
-                it->remove_user(client_caller);
-                it->remove_operator(client_caller);
-                return;
-            }
-            else
-            {
-                if (it->search_client_in_channel(client_socket) == 0)
-                    call_ERR_NOTONCHANNEL(client_socket, "PART");
-                else
-                    call_ERR_CHANOPRIVSNEEDED(client_socket, ch,"PART");
-                return;
+                if(it->get_name() == ch)
+                {
+                    if (this->check_if_channel_exist(it->get_name()) == 0)
+                    {
+                        call_ERR_NOSUCHCHANNEL(client_socket, ch,"PART");
+                        return;
+                    }
+                    if (it->check_if_user_exist_in_channel(client_caller.get_nickname()) == 0)
+                    {
+                        call_ERR_NOTONCHANNEL(client_socket, "PART");
+                        return;
+                    }
+                    if(it->search_client_in_channel(client_socket) != 0 &&  it->get_users().size() == 1)
+                    {
+                        std::string msg = ":" + client_caller.get_nickname() + " PART " + ch + " " + reson + "\r\n";
+                        it->send_message(msg, client_socket);
+                        send(client_socket, msg.c_str(),msg.length(),0);
+                        it->remove_user(client_caller);
+                        it->remove_operator(client_caller);
+                        this->channels.erase(it);
+                        break;
+                    }
+                    else if(it->search_client_in_channel(client_socket) != 0 && it->get_users().size() > 1)
+                    {
+                        std::string msg = ":" + client_caller.get_nickname() + " PART " + ch + " " + reson + "\r\n";
+                        it->send_message(msg, client_socket);
+                        send(client_socket, msg.c_str(),msg.length(),0);
+                        it->remove_user(client_caller);
+                        it->remove_operator(client_caller);
+                        break;
+                    }
+
+                }
             }
         }
     }
-    }
-    call_ERR_NOSUCHCHANNEL(client_socket, ch,"PART");
 }
 
 void Server::list_cmd(int client_socket, std::string buffer)
 {
     std::string ch = buffer.substr(0,buffer.find(" "));
-    // if(ch.empty())
-    // {
-
-    // }
-    for(std::vector<Channel>::iterator it = this->channels.begin(); it != this->channels.end(); ++it)
+    if (ch == "")
     {
-        if(it->get_name() == ch)
+        for(std::vector<Channel>::iterator it = this->channels.begin(); it != this->channels.end(); ++it)
         {
-            std::string msg = "321 RPL_LISTSTART :"+ ch + " " +it->get_topic()+"\r\n";
-            send(client_socket, msg.c_str(), msg.length(), 0);
-            std::string msg2 = "322 RPL_LIST " + it->get_name() + " " + std::to_string(it->get_users().size()) + " " + it->get_topic()+"\r\n";
-            send(client_socket, msg2.c_str(), msg2.length(), 0);
-            std::string msg3 = "323 RPL_LISTEND :End of /LIST\r\n";
-            send(client_socket, msg3.c_str(), msg3.length(), 0);
-            return;
+            std::string msg = ":" + this->get_srv_ip() + " 322 " + clients[client_socket].get_nickname() + " " + it->get_name() + " " + std::to_string(it->get_users().size()) + " :" + it->get_topic() + "\r\n";
+            send(client_socket, msg.c_str(),msg.length(),0);
         }
+        std::string msg =":"+ this->get_srv_ip() + " 323 " + clients[client_socket].get_nickname() + " :End of /LIST\r\n";
+        send(client_socket,msg.c_str(), msg.length(), 0);
     }
-    std::string msg = "403 ERR_NOSUCHCHANNEL <" + ch + "> :No such channel\r\n";
-    send(client_socket, msg.c_str(), msg.length(), 0);
+    else
+    {
+        for(std::vector<Channel>::iterator it = this->channels.begin(); it != this->channels.end(); ++it)
+        {
+            if(it->get_name() == ch)
+            {
+                std::string msg1= "321 RPL_LISTSTART :"+ ch + " " +it->get_topic()+"\r\n";
+                send(client_socket, msg1.c_str(), msg1.length(), 0);
+                std::string msg = ":" + this->get_srv_ip() + " 322 " + clients[client_socket].get_nickname() + " " + it->get_name() + " " + std::to_string(it->get_users().size()) + " :" + it->get_topic() + "\r\n";
+                send(client_socket, msg.c_str(),msg.length(),0);
+                std::string msg2 =":"+ this->get_srv_ip() + " 323 " + clients[client_socket].get_nickname() + " :End of /LIST\r\n";
+                send(client_socket,msg2.c_str(), msg2.length(), 0);
+                return;
+            }
+        }
+        call_ERR_NOSUCHCHANNEL(client_socket, ch,"LIST");
+    }
 }
 
 void Server::handle_input(int client_socket)
@@ -310,11 +336,29 @@ void Server::handle_input(int client_socket)
     }
     std::string command = buffer.substr(0, buffer.find(" "));
     buffer.erase(0, command.length() + 1);
-    if(command == "MODE")
-    // MODE # +t +l 100 -o & 
-    //MODE # +tl 100Z
-    {   // MODE & +++++---+++tm  +t -m  +t-m
-        //+lio 100 heheh
+     if(command == "NICK") // griffin
+    {
+        this->nick_cmd(client_socket, buffer);
+        client_caller.clear_buffer();
+    }
+    else if(command == "PASS") // griffin
+    {
+        this->pass_cmd(client_socket, buffer);
+        client_caller.clear_buffer();
+    }
+    else if(command == "USER") // griffin
+    {
+        this->user_cmd(client_socket, buffer);
+        client_caller.clear_buffer();
+    }
+    else if (client_caller.get_grade() != AUTHENTICATED)
+    {
+        std::string msg = ":" + get_srv_ip() + std::string(ERR_NOTREGISTERED) + " " + client_caller.get_nickname() +" :You have not registered\r\n";
+        send(client_socket, msg.c_str(), msg.length(), 0);
+        return;
+    }
+    else if(command == "MODE")
+    {
         this->mode_flag(client_socket, buffer);
         client_caller.clear_buffer();
     }
@@ -328,29 +372,14 @@ void Server::handle_input(int client_socket)
         this->part_cmd(client_socket, buffer);
         client_caller.clear_buffer();
     }
-    else if(command == "PASS") // griffin
-    {
-        this->pass_cmd(client_socket, buffer);
-        client_caller.clear_buffer();
-    }
     else if(command == "INVITE") // scayho // Griffin, invite only channels need to be implemented // TODO
     {
         this->invite_cmd(client_socket, buffer);
         client_caller.clear_buffer();
     }
-    else if(command == "NICK") // griffin
-    {
-        this->nick_cmd(client_socket, buffer);
-        client_caller.clear_buffer();
-    }
     else if(command == "TOPIC") // scayho
     {
         this->topic_cmd(client_socket, buffer);
-        client_caller.clear_buffer();
-    }
-    else if(command == "USER") // griffin
-    {
-        this->user_cmd(client_socket, buffer);
         client_caller.clear_buffer();
     }
     else if (command == "KICK") //absela
