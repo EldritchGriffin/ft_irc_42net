@@ -22,9 +22,10 @@ class Bot
     private:
         std::string _host;
         std::string _port;
+        std::string _pass;
     public:
-        Bot(std::string const &host, std::string const &port);
+        Bot(std::string const &host, std::string const &port, std::string const &pass);
         ~Bot();
 
     void run();
-}
+};
