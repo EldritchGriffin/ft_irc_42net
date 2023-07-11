@@ -3,6 +3,13 @@
 #include "Tools.hpp"
 #include "numeric_replies.hpp"
 
+void print_vector(std::vector<std::string> vec)
+{
+    for (std::vector<std::string>::iterator it = vec.begin(); it != vec.end(); ++it)
+    {
+        std::cout << *it << '\n';
+    }
+}
 
 void Server::part_cmd(int client_socket,std::string buffer){
     Client client_caller = clients[client_socket];
@@ -16,7 +23,7 @@ void Server::part_cmd(int client_socket,std::string buffer){
         for(size_t i=0; i < channel.size();i++)
         {
             ch = channel[i];
-            for(std::vector<Channel>::iterator it = this->channels.begin(); it != this->channels.end(); ++it)
+            for(std::vector<Channel>::iterator it = this->channels.begin(); it != this->channels.end(); it++)
             {
                 if(it->get_name() == ch)
                 {

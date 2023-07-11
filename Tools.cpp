@@ -23,17 +23,9 @@ std::vector<std::string> split_multiple_targets(std::string channel_name)
     return (target_names);
 }
 
-void print_vector(std::vector<Client> v)
-{
-    for (std::vector<Client>::iterator it = v.begin(); it != v.end(); ++it)
-    {
-        std::cout << "----------- " << it->get_nickname() << std::endl;
-    }
-}
-
 int Server::check_if_channel_exist(std::string n)
 {
-    for(std::vector<Channel>::iterator i = channels.begin() ; channels.end() != i ; ++i)
+    for(std::vector<Channel>::iterator i = channels.begin() ; channels.end() != i ; i++)
     {
         if (i->get_name() == n)
             return (1);

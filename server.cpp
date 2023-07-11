@@ -186,9 +186,9 @@ Client &Server::get_user_obj(std::string target)
 
 int Channel::check_if_user_exist_in_channel(std::string user)
 {
-    for(std::vector<Client>::iterator it = users.begin(); it != users.end(); ++it)
+    for(size_t i = 0; i < users.size(); i++)
     {
-        if (it->get_nickname() == user)
+        if (users[i].get_nickname() == user)
             return (1);
     }
     return (0);
@@ -209,7 +209,7 @@ void Server::invite_cmd(int client_socket, std::string buffer){
         call_ERR_NEEDMOREPARAMS(client_socket, "INVITE");
     else{
 
-    for(std::vector<Channel>::iterator it = this->channels.begin(); it != this->channels.end(); ++it)
+    for(std::vector<Channel>::iterator it = this->channels.begin(); it != this->channels.end(); it++)
     {
         std::cout << it->get_name() << " | " << ch << std::endl;
         if(it->get_name() == ch)
