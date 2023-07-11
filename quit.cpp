@@ -2,6 +2,18 @@
 #include "Channel.hpp"
 #include "numeric_replies.hpp"
 
+void Server::remove_fd(int fd)
+{
+    for(size_t i = 0; i < this->pollfds.size(); i++)
+    {
+        if(this->pollfds[i].fd == fd)
+        {
+            this->pollfds.erase(this->pollfds.begin() + i);
+            break;
+        }
+    }
+}
+
 void Server::monitor_channells()
 {
     if(this->channels.size() == 0)
@@ -26,16 +38,13 @@ void Server::quit_cmd(int client_socket)
     std::string msg = ":" + client_caller.get_nickname() + " QUIT\r\n";
     for(size_t i = 0; i < this->channels.size(); i++)
     {
-        if(channels[i].check_if_user_exist_in_channel(client_caller.get_nickname()) == 1)
+        if(channels[i].search_client_in_channel(client_caller.get_nickname()) != 0)
         {
-            std::string message = ":" + client_caller.get_nickname() + " PART " + channels[i].get_name() + "\r\n";
-            channels[i].remove_user(client_caller);
-            channels[i].remove_operator(client_caller);
-            channels[i].send_message(message, client_socket);
+            part_cmd(client_socket, channels[i].get_name());
         }
     }
-    monitor_channells();
     send(client_socket, msg.c_str(),msg.length(),0);
+    remove_fd(client_socket);
     clients.erase(client_socket);
     close(client_socket);
 }

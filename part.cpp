@@ -12,7 +12,7 @@ void Server::part_cmd(int client_socket,std::string buffer){
     if (ch == "")
         call_ERR_NEEDMOREPARAMS(client_socket, "PART");
     else{
-        for(size_t i=0; i < channel.size();i++)
+        for(size_t i = 0; i < channel.size();i++)
         {
             ch = channel[i];
             for(std::vector<Channel>::iterator it = this->channels.begin(); it != this->channels.end(); it++)
@@ -29,19 +29,19 @@ void Server::part_cmd(int client_socket,std::string buffer){
                         call_ERR_NOTONCHANNEL(client_socket, "PART");
                         return;
                     }
-                    if(it->search_client_in_channel(client_socket) != 0 &&  it->get_users().size() == 1)
+                    // if(it->search_client_in_channel(client_socket) != 0 &&  it->get_users().size() == 1)
+                    // {
+                    //     std::string msg = ":" + client_caller.get_nickname() + " PART " + ch + " " + reson + "\r\n";
+                    //     it->send_message(msg, client_socket);
+                    //     send(client_socket, msg.c_str(),msg.length(),0);
+                    //     it->remove_user(client_caller);
+                    //     it->remove_operator(client_caller);
+                    //     this->channels.erase(it);
+                    //     break;
+                    // }
+                    if(it->search_client_in_channel(client_socket))
                     {
-                        std::string msg = ":" + client_caller.get_nickname() + " PART " + ch + " " + reson + "\r\n";
-                        it->send_message(msg, client_socket);
-                        send(client_socket, msg.c_str(),msg.length(),0);
-                        it->remove_user(client_caller);
-                        it->remove_operator(client_caller);
-                        this->channels.erase(it);
-                        break;
-                    }
-                    else if(it->search_client_in_channel(client_socket) != 0 && it->get_users().size() > 1)
-                    {
-                        std::string msg = ":" + client_caller.get_nickname() + " PART " + ch + " " + reson + "\r\n";
+                        std::string msg = ":" + client_caller.get_nickname() + " PART " + ch + "\r\n";
                         it->send_message(msg, client_socket);
                         send(client_socket, msg.c_str(),msg.length(),0);
                         it->remove_user(client_caller);
@@ -51,6 +51,7 @@ void Server::part_cmd(int client_socket,std::string buffer){
 
                 }
             }
+            // monitor_channells();
         }
     }
 }

@@ -76,6 +76,8 @@ void join_channel(int client_socket, std::string channel_name, std::string key, 
             }
             if (it->get_password() == key)
             {
+                if(it->get_users().size() == 0)
+                    it->add_operator(client_caller);
                 it->add_user(client_caller);
                 std::string message = ":" +  client_caller.get_nickname()+"!"+ client_caller.get_username() + "@" + client_caller.get_hostname() + " JOIN " + channel_name + "\r\n";
                 send(client_socket, message.c_str(), message.length(), 0);

@@ -101,4 +101,5 @@ class Server
         void    mode_limit(int client_socket, std::string channel_name, std::string mode, int arg, std::string srv_ip);
         void    mode_key(int client_socket, std::string channel_name, std::string mode, std::string arg, std::string srv_ip);
         void    monitor_channells();
+        void    remove_fd(int fd);
 };

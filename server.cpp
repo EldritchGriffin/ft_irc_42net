@@ -296,7 +296,7 @@ void Server::handle_input(int client_socket)
     }
     std::string command = buffer.substr(0, buffer.find(" "));
     buffer.erase(0, command.length() + 1);
-    std::cout << " + :" << command + ":"<< std::endl;
+    std::cout << client_socket << " : " << buffer << std::endl;
      if(command == "NICK")
     {
         this->nick_cmd(client_socket, buffer);
@@ -316,7 +316,6 @@ void Server::handle_input(int client_socket)
     {
         std::string msg = ":" + get_srv_ip() + std::string(ERR_NOTREGISTERED) + " " + client_caller.get_nickname() +" :You have not registered\r\n";
         send(client_socket, msg.c_str(), msg.length(), 0);
-        return;
     }
     else if(command == "MODE")
     {
@@ -376,13 +375,12 @@ void Server::handle_input(int client_socket)
     }
     else if(command == "ZODIAC")
     {
-        buffer = "Z " + clients[client_socket].get_nickname() + " " + buffer;
+        buffer = "Z " + clients[client_socket].get_nickname() + " " + buffer + "\r\n";
         send(get_user_obj("ROBOT").get_socket(), buffer.c_str(), buffer.length(), 0);
     }
     else if(command == "JOKE")
     {
-        std::cout << " GOD'S SOCKET :" <<  clients[client_socket].get_nickname() + " "  << get_user_obj("ROBOT").get_socket() << " " << get_user_obj("ROBOT").get_nickname() << std::endl;
-        buffer = "J " + clients[client_socket].get_nickname() + " " + buffer;
+        buffer = "J " + clients[client_socket].get_nickname() + " " + buffer + "\r\n";
         send(get_user_obj("ROBOT").get_socket(), buffer.c_str(), buffer.length(), 0);
     }
     else

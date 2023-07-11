@@ -102,7 +102,6 @@ void    zodiac::get_a_zodiac(int sock, int month, int day, std::string name)
         taha = "Sagittarius" ;
     else
         taha = "Capricorn" ;
-    std::cout << "|" + name + "|" << std::endl;
     std::string msg = "PRIVMSG " + name + " :" + taha + "\r\n";
     send(sock, msg.c_str(), msg.size(), 0);
 }
@@ -177,16 +176,13 @@ void Bot::run()
     while(1)
     {
         char buffer[1024];
-        std::cout << "waiting to receive" << std::endl;
         int bytes_read = recv(sock, &buffer, 1024, 0);
-        std::cout << "received" << std::endl;
         buffer[bytes_read] = '\0';
         if (bytes_read <= 0)
         {
             std::cerr << "Server disconnected" << std::endl;
             exit(EXIT_FAILURE);
         }
-        std::cout << buffer << std::endl;
         std::string b(buffer);
         if (b[0] == 'J' && b[1] == ' ')
         {

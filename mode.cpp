@@ -151,7 +151,6 @@ void    mode_operator(int client_socket, std::string channel_name, std::string m
                 return ;
             }
         }
-        // std::string erro(":IRC.srv.ma 442 MODE : Channel not found !!\r\n");
         std::string erro = ":" + srv->get_srv_ip() + " " + ERR_NOTONCHANNEL +" MODE: Channel not found !!\r\n";
         send(client_socket , erro.c_str(), erro.length() , 0);
     }
@@ -179,7 +178,6 @@ void    mode_operator(int client_socket, std::string channel_name, std::string m
                 return ;
             }
         }
-        // std::string erro(":IRC.srv.ma 442 MODE : Channel not found !!\r\n");
         std::string erro = ":" + srv->get_srv_ip() + " " + ERR_NOTONCHANNEL +" MODE: Channel not found !!\r\n";
         send(client_socket , erro.c_str(), erro.length() , 0);
     }
