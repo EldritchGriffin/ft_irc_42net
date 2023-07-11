@@ -72,7 +72,6 @@ std::string check_lineending(std::string p, Client &sender)
     std::string cl_buffer = sender.get_buffer();
     if (p.find("\r\n") == std::string::npos && p.find("\n") == std::string::npos)
     {
-        std::cout << "|" << p << "|" << std::endl;
         sender.add_to_buffer(p);
         return std::string();
     }
@@ -82,7 +81,6 @@ std::string check_lineending(std::string p, Client &sender)
         p = p.substr(0, p.find("\r\n"));
     else if(p.find("\n") != std::string::npos)
         p = p.substr(0, p.find("\n"));
-    std::cout << "|" << p << "|" << std::endl;
     return p;
 }
 
@@ -136,7 +134,6 @@ void Server::msg(int client_socket, std::string buffer)
             if(it->get_name() == target)
             {
                 std::string msg = ":" + client_caller.get_nickname() + " PRIVMSG " + target + " :" + buffer + "\r\n";
-                std::cout << "Num users : " << it->get_users().size() << std::endl;
                 it->send_message(msg, client_socket);
                 k = 1;
             }
@@ -211,7 +208,6 @@ void Server::invite_cmd(int client_socket, std::string buffer){
 
     for(std::vector<Channel>::iterator it = this->channels.begin(); it != this->channels.end(); it++)
     {
-        std::cout << it->get_name() << " | " << ch << std::endl;
         if(it->get_name() == ch)
         {
             if(it->search_client_in_channel(client_socket) == 1 || it->search_client_in_channel(client_socket) == 2)

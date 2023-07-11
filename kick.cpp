@@ -31,7 +31,6 @@ void Server::kick_cmd(int client_socket, std::string buffer)
         {
             if(it->get_name() == ch)
             {
-                std::cout << it->check_if_user_exist_in_channel(client_caller.get_nickname()) << std::endl;
                 if (it->check_if_user_exist_in_channel(client_caller.get_nickname()) == 0)
                 {
                     std::string msg = ":" + this->get_srv_ip() + " " + ERR_NOTONCHANNEL + " " + it->get_name() + " :You're not on that channel\r\n";

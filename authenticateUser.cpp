@@ -66,7 +66,6 @@ void Server::nick_cmd(int client_socket, std::string buffer)
     {
         buffer.erase(0, 1);
         std::replace(buffer.begin(), buffer.end(), ' ', '_');
-        std::cout << buffer << std::endl;
     }
     else
         buffer = buffer.substr(0, buffer.find(" "));

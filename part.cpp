@@ -3,14 +3,6 @@
 #include "Tools.hpp"
 #include "numeric_replies.hpp"
 
-void print_vector(std::vector<std::string> vec)
-{
-    for (std::vector<std::string>::iterator it = vec.begin(); it != vec.end(); ++it)
-    {
-        std::cout << *it << '\n';
-    }
-}
-
 void Server::part_cmd(int client_socket,std::string buffer){
     Client client_caller = clients[client_socket];
     std::string ch = buffer.substr(0,buffer.find(" "));
