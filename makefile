@@ -1,6 +1,6 @@
 SRC 	:= main.cpp server.cpp Client.cpp Channel.cpp Tools.cpp authenticateUser.cpp join.cpp topic.cpp quit.cpp  kick.cpp mode.cpp list.cpp part.cpp
 CC 		:= c++
-CFLAG	:= -Wall -Werror -Wextra -std=c++98 -fsanitize=address
+CFLAG	:= -Wall -Werror -Wextra -std=c++98 -g -fsanitize=address
 NAME 	:= ircserv
 HEADERS := server.hpp Client.hpp Channel.hpp Tools.hpp
 # HEADERS := server.hpp Client.hpp Channel.hpp 

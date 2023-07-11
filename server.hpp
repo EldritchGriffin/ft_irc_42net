@@ -46,11 +46,10 @@ class Server
         void user_cmd(int client_socket, std::string buffer); 
         void kick_cmd(int client_socket, std::string buffer);
         void part_cmd(int client_socket,std::string buffer);
-        void kill_cmd(int client_socket, std::string buffer);
         void mode_flag(int client_socket, std::string buffer);
         void list_cmd(int client_socket,std::string buffer);
+        void bot_cmd(int client_socket,std::string buffer);
         void quit_cmd(int client_socket);
-        void invite_user(std::string user);
         void invite_cmd(int client_socket, std::string buffer);
         void msg(int client_socket, std::string buffer);
 
@@ -101,4 +100,5 @@ class Server
         void    mode_invite(int client_socket, std::string channel_name, std::string mode, std::string srv_ip);
         void    mode_limit(int client_socket, std::string channel_name, std::string mode, int arg, std::string srv_ip);
         void    mode_key(int client_socket, std::string channel_name, std::string mode, std::string arg, std::string srv_ip);
+        void    monitor_channells();
 };

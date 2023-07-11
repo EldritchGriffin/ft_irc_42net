@@ -62,6 +62,14 @@ void Server::nick_cmd(int client_socket, std::string buffer)
         send(client_socket, msg.c_str(), msg.length(), 0);
         return;
     }
+    if(buffer[0] == ':')
+    {
+        buffer.erase(0, 1);
+        std::replace(buffer.begin(), buffer.end(), ' ', '_');
+        std::cout << buffer << std::endl;
+    }
+    else
+        buffer = buffer.substr(0, buffer.find(" "));
     for(std::map<int, Client>::iterator it = this->clients.begin(); it != this->clients.end(); it++)
     {
         if(it->second.get_nickname() == buffer)

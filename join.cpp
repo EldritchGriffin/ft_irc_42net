@@ -107,5 +107,4 @@ void Server::join_cmd(int client_socket, std::string buffer)
             channel_targets[i] = "#" + channel_targets[i];
         join_channel(client_socket, channel_targets[i], key_targets[i], *this);
     }
-        print_vector(this->channels.at(this->channels.size() - 1).get_users());
 } 

@@ -43,7 +43,6 @@ class Channel{
         void set_name(std::string name);
         void set_topic(std::string topic);
         void set_topic_flag(int g);
-        void set_admin(Client admin);
         void set_password(std::string password);
         void set_users(std::vector<Client> users);
 
@@ -53,11 +52,9 @@ class Channel{
         std::string get_topic() const;
         std::string get_password() const;
         std::vector<Client> &get_users();
-        Client get_admin() const;
 
         void add_user(Client user);
         void kick_user(std::string user);
-        void invite_user(std::string user);
         std::string list_cmd(std::string msg);
         void add_operator(Client user);
 
