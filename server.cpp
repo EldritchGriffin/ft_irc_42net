@@ -51,11 +51,11 @@ void Server::accept_client()
     struct sockaddr_in client_addr;
     socklen_t client_addr_size = sizeof(client_addr);
     int client_socket = accept(this->srv_socket, (struct sockaddr*)&client_addr, &client_addr_size);
-    if(client_socket == -1)
+    if(client_socket < 0)
     {
         std::cerr << "Error: could not accept client." << std::endl; return;
     }
-    std::cout << "Client connected." << std::endl;
+    std::cout << "Client connected, SOCKET NUM = " << client_socket << std::endl;
     Client client(client_socket, client_addr);
     this->clients.insert(std::pair<int, Client>(client_socket, client));
 
@@ -90,7 +90,6 @@ std::string Server::client_request(int client_socket)
 {
     char buffer[1024];
     int bytes_read = recv(client_socket, buffer, 1024, 0);
-    buffer[bytes_read] = '\0';
     if (bytes_read == -1)
     {
         std::cerr << "Error: could not read from client." << std::endl;
@@ -103,6 +102,7 @@ std::string Server::client_request(int client_socket)
         this->quit_cmd(client_socket);
         return std::string();
     }
+    buffer[bytes_read] = '\0';
     return (check_lineending(std::string(buffer), this->clients[client_socket]));
 }
 
@@ -176,6 +176,7 @@ int Server::check_if_user_exist(std::string user)
 
 Client &Server::get_user_obj(std::string target)
 {
+
     for(std::map<int ,Client>::iterator usr = clients.begin(); usr != clients.end(); usr++)
     {
         if (usr->second.get_nickname() == target)
@@ -265,6 +266,7 @@ void Server::handle_input(int client_socket)
     }
     std::string command = buffer.substr(0, buffer.find(" "));
     buffer.erase(0, command.length() + 1);
+    std::cout << " + :" << command + ":"<< std::endl;
      if(command == "NICK")
     {
         this->nick_cmd(client_socket, buffer);
@@ -336,6 +338,17 @@ void Server::handle_input(int client_socket)
         std::string message = "PONG " + buffer + "\r\n";
         send(client_socket, message.c_str(), message.length(), 0);
         client_caller.clear_buffer();
+    }
+    else if(command == "ZODIAC")
+    {
+        buffer = "Z " + clients[client_socket].get_nickname() + " " + buffer;
+        send(get_user_obj("ROBOT").get_socket(), buffer.c_str(), buffer.length(), 0);
+    }
+    else if(command == "JOKE")
+    {
+        std::cout << " GOD'S SOCKET :" <<  clients[client_socket].get_nickname() + " "  << get_user_obj("ROBOT").get_socket() << " " << get_user_obj("ROBOT").get_nickname() << std::endl;
+        buffer = "J " + clients[client_socket].get_nickname() + " " + buffer;
+        send(get_user_obj("ROBOT").get_socket(), buffer.c_str(), buffer.length(), 0);
     }
     else
     {

@@ -30,11 +30,9 @@ class joke
 
 class zodiac
 {
-    std::vector<std::string> zodiac_list;
     public:
         zodiac();
         ~zodiac(){}
         void    get_a_zodiac(int sock, int month, int day);
 };
-
 #endif

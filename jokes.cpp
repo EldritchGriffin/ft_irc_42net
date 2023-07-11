@@ -60,29 +60,36 @@ void    joke::get_a_joke(int sock)
 
 zodiac::zodiac()
 {
-    zodiac_list.push_back("Aquarius ");
-    zodiac_list.push_back("Pisces");
-    zodiac_list.push_back("Aries");
-    zodiac_list.push_back("Taurus");
-    zodiac_list.push_back("Gemini");
-    zodiac_list.push_back("Cancer");
-    zodiac_list.push_back("Leo");
-    zodiac_list.push_back("Virgo");
-    zodiac_list.push_back("Libra");
-    zodiac_list.push_back("Scorpio");
-    zodiac_list.push_back("Sagittarius");
-    zodiac_list.push_back("Capricorn");
 }
 
 void    zodiac::get_a_zodiac(int sock, int month, int day)
 {
     if (month > 12 || month < 1 || day < 1 || day > 31)
         std::string err("wrong date");
-    int number = (month * 31) + day;
-    number %= 31;
-    // send(sock, jokes_list[joke_number].c_str(), jokes_list[joke_number].size(), 0);
-    // send(sock, jokes_answers[joke_number].c_str(), jokes_answers[joke_number].size(), 0);
-    std::cout << zodiac_list[number] << std::endl;
+    else if ((month == 1 && day >19) || (month == 2 && day < 19))
+        std::cout << "Aquarius" << std::endl;
+    else if ((month == 2 && day  > 18) || (month == 3 && day < 21))
+        std::cout << "Pisces" << std::endl;
+    else if ((month == 3 && day  > 21) || (month == 4 && day < 20))
+        std::cout << "Aries" << std::endl;
+    else if ((month == 4 && day  > 19) || (month == 5 && day < 21))
+        std::cout << "Taurus" << std::endl;
+    else if ((month == 5 && day  > 20) || (month == 6 && day < 21))
+        std::cout << "Gemini" << std::endl;
+    else if ((month == 6 && day  > 20) || (month == 7 && day < 23))
+        std::cout << "Cancer" << std::endl;
+    else if ((month == 7 && day  > 22) || (month == 8 && day < 23))
+        std::cout << "Leo" << std::endl;
+    else if ((month == 8 && day  > 22) || (month == 9 && day < 23))
+        std::cout << "Virgo" << std::endl;
+    else if ((month == 9 && day  > 22) || (month == 10 && day < 23))
+        std::cout << "Libra" << std::endl;
+    else if ((month == 10 && day  > 22) || (month == 11 && day < 22))
+        std::cout << "Scorpio" << std::endl;
+    else if ((month == 11 && day  > 21) || (month == 12 && day < 21))
+        std::cout << "Sagittarius" << std::endl;
+    else
+        std::cout << "Capricorn" << std::endl;
 }
 
 int main(int ac, char **av)
@@ -90,6 +97,6 @@ int main(int ac, char **av)
     joke joker;
     joker.get_a_joke(3);
     zodiac zozo;
-    zozo.get_a_zodiac(4, 8, 10);
-    std::cout << ((8 * 31) + 10) % 31 << std::endl;
+    zozo.get_a_zodiac(4, 8, 31);
+    std::cout << ((8 * 31) + 10) / 31 << std::endl;
 }
