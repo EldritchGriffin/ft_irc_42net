@@ -55,7 +55,7 @@ void Server::accept_client()
     {
         std::cerr << "Error: could not accept client." << std::endl; return;
     }
-    std::cout << "Client connected, SOCKET NUM = " << client_socket << std::endl;
+    std::cout << "Client connected" << client_socket << std::endl;
     Client client(client_socket, client_addr);
     this->clients.insert(std::pair<int, Client>(client_socket, client));
 
@@ -296,7 +296,6 @@ void Server::handle_input(int client_socket)
     }
     std::string command = buffer.substr(0, buffer.find(" "));
     buffer.erase(0, command.length() + 1);
-    std::cout << client_socket << " : " << buffer << std::endl;
      if(command == "NICK")
     {
         this->nick_cmd(client_socket, buffer);
